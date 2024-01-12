@@ -342,7 +342,7 @@ typedef struct gedict_s {
 	struct gedict_s*      target1,*target2,*target3;
 	float          checkMovementTime;
 	float          obs_time;
-//movment
+//movement
         float          botNoMoveTime;
         float          time_for_wpchange;
 

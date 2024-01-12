@@ -587,6 +587,26 @@ void player_assaultcannondown1(  )
 	Attack_Finished( 0.1 );
 }
 
+void player_healgun_fire(  )
+{
+	self->s.v.frame = 105;
+	self->s.v.think = (func_t)player_healgun_fire;
+	self->s.v.nextthink = g_globalvars.time + 0.1;
+
+	muzzleflash(  );
+	if ( !self->s.v.button0 || intermission_running )
+	{
+		player_run(  );
+		return;
+	}
+	self->s.v.weaponframe = self->s.v.weaponframe + 1;
+	if ( self->s.v.weaponframe == 5 )
+		self->s.v.weaponframe = 1;
+
+	W_FireHealbeam(  );
+	Attack_Finished( 0.2 );
+}
+
 void player_light1(  )
 {
 	self->s.v.frame = 105;

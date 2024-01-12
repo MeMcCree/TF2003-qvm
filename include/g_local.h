@@ -212,6 +212,7 @@ void      W_FireSniperRifle();
 void      W_FireAutoRifle();
 void      W_FireAssaultCannon();
 void      W_FireRocket();
+void      W_FireHealbeam();
 void      W_FireLightning();
 void      W_FireGrenade();
 void      W_FireSuperSpikes();

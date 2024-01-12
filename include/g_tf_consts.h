@@ -233,6 +233,7 @@
 
 // Select Medikit
 #define TF_MEDIKIT   176
+#define TF_HEALGUN   200
 
 // Spy Impulses
 #define TF_SPY_SPY   177  // On net, go invisible, on LAN, change skin/color
@@ -356,6 +357,7 @@
 #define WEAP_DETPACK   131072
 #define WEAP_TRANQ    262144
 #define WEAP_LASER    524288
+#define WEAP_HEALGUN  1048576
 // still room for 12 more weapons
 // but we can remove some by giving the weapons
 // a weapon mode (like the rifle)

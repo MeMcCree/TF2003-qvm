@@ -135,7 +135,7 @@ static const class_settings_t class_set[] = {
 	{
 	 16,			//bitmask
 	 90, 320, 320,		//maxhelth ,speeds
-	 WEAP_MEDIKIT | WEAP_SHOTGUN | WEAP_SUPER_SHOTGUN | WEAP_SUPER_NAILGUN,
+	 WEAP_MEDIKIT | WEAP_SHOTGUN | WEAP_SUPER_SHOTGUN | WEAP_SUPER_NAILGUN | WEAP_HEALGUN,
 	 WEAP_SUPER_NAILGUN,	//weapon: carried, start
 	 50, 50, 0, 0, 0, 50,	// ammo
 	 75, 150, 25, 50, 0, 100,	//maxammo

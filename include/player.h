@@ -52,6 +52,7 @@ void player_assaultcannon1();
 void player_assaultcannon2();
 void player_assaultcannondown1();
 
+void player_healgun_fire();
 void player_light1();
 void player_light2();
 

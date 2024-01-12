@@ -58,6 +58,7 @@ const weapon_info_t weapons_info[]= {
 {  WEAP_DETPACK          , 0,                   },
 {  WEAP_TRANQ            , IT_SHOTGUN,          IT_SHELLS,  1, FOFS(s.v.ammo_shells), F_FLOAT,1,0,0,0, 0,0,   0,0, 1.5, "progs/v_tgun.mdl", "", "weapons/dartgun.wav", 0},
 {  WEAP_LASER            , IT_SHOTGUN,          IT_NAILS,   1, FOFS(s.v.ammo_nails),  F_FLOAT,0,1,0,0, 0,0,   0,0, 0.4, "progs/v_rail.mdl", "", "weapons/railgun.wav", 0},
+{  WEAP_HEALGUN          , IT_LIGHTNING,        0,          0, FOFS(ammo_medikit),    0,0,0,0,0, 0,0,         0,0, 0.5, "progs/v_light.mdl", "", "weapons/lstart.wav", 0},
 };
 
 #define WEAPON_BY_BIT(bit) &weapons_info[log2powerof2(bit) + 1]
@@ -1046,6 +1047,191 @@ void LightningDamage(vec3_t p1, vec3_t p2, gedict_t *from, float damage) {
   }
 }
 
+void HealbeamHeal(vec3_t p1, vec3_t p2, float healam) {
+  gedict_t *e, *te;
+  float healdmg;
+
+  e = world;
+  traceline(PASSVEC3(p1), PASSVEC3(p2), false, self);
+
+  e = PROG_TO_EDICT(g_globalvars.trace_ent);
+  if (e->s.v.takedamage) {
+    if (streq(e->s.v.classname, "player")) {
+      if ((TeamFortress_isTeamsAllied(e->team_no, self->team_no) && self->team_no) || coop) {
+        // Concussion heal
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
+          if (te->s.v.owner != g_globalvars.trace_ent)
+            continue;
+          if (te->s.v.think != (func_t)ConcussionGrenadeTimer && te->s.v.think != (func_t)OldConcussionGrenadeTimer)
+            continue;
+          if (tfset(old_grens)) {
+            stuffcmd(e, "v_idlescale 0\nfov 90\n");
+            e->eff_info.conc_idle = 0;
+          }
+          SpawnBlood(g_globalvars.trace_endpos, 20);
+          G_bprint(1, "%s cured %s's concussion\n", self->s.v.netname, e->s.v.netname);
+          if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+            TF_AddFrags(self, 1);
+          dremove(te);
+          break;
+        }
+
+        // Hallucination heal
+        if (e->tfstate & TFSTATE_HALLUCINATING) {
+          for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
+            if (te->s.v.owner != g_globalvars.trace_ent)
+              continue;
+            if (te->s.v.think != (func_t)HallucinationTimer)
+              continue;
+
+            e->tfstate -= (e->tfstate & TFSTATE_HALLUCINATING);
+            SpawnBlood(g_globalvars.trace_endpos, 20);
+            G_bprint(1, "%s healed %s of his hallucinations\n", self->s.v.netname, e->s.v.netname);
+
+            ResetGasSkins(e);
+            if (tfset_new_gas & GAS_MASK_PALETTE)
+              stuffcmd(e, "v_cshift; wait; bf\n");
+            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+              TF_AddFrags(self, 1);
+            dremove(te);
+            break;
+          }
+          if (!te)
+            G_conprintf("Warning: Error in Hallucination Timer logic.\n");
+        }
+
+        // Tranquilisation heal
+        if (e->tfstate & TFSTATE_TRANQUILISED) {
+          for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
+            if (te->s.v.owner != g_globalvars.trace_ent)
+              continue;
+            if (te->s.v.think != (func_t)TranquiliserTimer)
+              continue;
+
+            e->tfstate -= (e->tfstate & TFSTATE_TRANQUILISED);
+            TeamFortress_SetSpeed(e);
+            SpawnBlood(g_globalvars.trace_endpos, 20);
+            G_bprint(1, "%s healed %s's tranquilisation\n", self->s.v.netname, e->s.v.netname);
+            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+              TF_AddFrags(self, 1);
+            dremove(te);
+            break;
+          }
+          if (!te)
+            G_conprintf("Warning: Error in Tranquilisation Timer logic.\n");
+        }
+
+        // Blindness heal
+        if (e->FlashTime > 0) {
+          for (te = world; (te = trap_find(te, FOFS(s.v.netname), "flashtimer"));) {
+            if (te->s.v.owner != g_globalvars.trace_ent)
+              continue;
+            if (strneq(te->s.v.classname, "timer"))
+              continue;
+
+            e->FlashTime = 0;
+            SpawnBlood(g_globalvars.trace_endpos, 20);
+            G_bprint(1, "%s cured %s's blindness\n", self->s.v.netname, e->s.v.netname);
+            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+              TF_AddFrags(self, 1);
+            if (tfset(new_flash))
+              disableupdates(e, -1); /* server-side flash */
+            break;
+          }
+          if (!te) {
+            G_conprintf("Warning: Error in Flash Timer logic.\n");
+            e->FlashTime = 0;
+          }
+        }
+
+        // Infection heal
+        if (e->tfstate & TFSTATE_INFECTED) {
+          healdmg = Q_rint(e->s.v.health / 2);
+          e->tfstate -= (e->tfstate & TFSTATE_INFECTED);
+          tf_data.deathmsg = DMSG_MEDIKIT;
+          T_Damage(e, self, self, healdmg);
+          SpawnBlood(g_globalvars.trace_endpos, 30);
+          if (streq(self->s.v.classname, "player")) {
+            G_bprint(1, "%s cured %s's infection\n", self->s.v.netname, e->s.v.netname);
+            if (!TeamFortress_isTeamsAllied(e->infection_team_no, self->team_no))
+              TF_AddFrags(self, 1);
+          }
+          return;
+        }
+
+        // Put out flames
+        if (e->numflames > 0) {
+          sound(e, 1, "items/r_item1.wav", 1, 1);
+          e->numflames = 0;
+          if (streq(self->s.v.classname, "player")) {
+            G_bprint(1, "%s put out %s's fire.\n", self->s.v.netname, e->s.v.netname);
+          }
+          return;
+        }
+      }
+
+      if (e->s.v.health < e->s.v.max_health) {
+        T_Heal(e, healam, 0);
+        sound(e, 1, "items/r_item1.wav", 1, 1);
+      } else if (e->s.v.health >= e->s.v.max_health && e->s.v.health < e->s.v.max_health + WEAP_MEDIKIT_OVERHEAL) {
+        sound(e, 1, "items/r_item1.wav", 1, 1);
+        T_Heal(e, healam / 2, 1);
+        
+        if (!((int)e->s.v.items & IT_SUPERHEALTH)) {
+          e->s.v.items = (int)e->s.v.items | IT_SUPERHEALTH;
+          newmis = spawn();
+          newmis->s.v.nextthink = g_globalvars.time + 5;
+          newmis->s.v.think = (func_t)item_megahealth_rot;
+          newmis->s.v.owner = EDICT_TO_PROG(e);
+        }
+      }
+    }
+  }
+}
+
+void W_FireHealbeam() {
+  vec3_t org;
+  float medkits;
+  vec3_t tmp;
+
+  if (self->ammo_medikit < 1) {
+    self->last_weapon = self->current_weapon;
+    self->last_weaponmode = self->weaponmode;
+    self->current_weapon = W_BestWeapon();
+    W_SetCurrentAmmo();
+    W_PrintWeaponMessage();
+    return;
+  }
+
+  if (self->t_width < g_globalvars.time) {
+    sound(self, 1, "weapons/lhit.wav", 1, 1);
+    self->t_width = g_globalvars.time + 0.6;
+  }
+
+  KickPlayer(-2, self);
+  if (!tg_data.unlimit_ammo)
+    self->s.v.currentammo = --(self->ammo_medikit);
+
+  VectorCopy(self->s.v.origin, org); // org = self->s.v.origin + '0 0 16';
+  org[2] += 16;
+  traceline(PASSVEC3(org), org[0] + g_globalvars.v_forward[0] * 240, org[1] + g_globalvars.v_forward[1] * 240, org[2] + g_globalvars.v_forward[2] * 240, true, self);
+  trap_WriteByte(MSG_MULTICAST, SVC_TEMPENTITY);
+  trap_WriteByte(MSG_MULTICAST, TE_LIGHTNING2);
+  WriteEntity(MSG_MULTICAST, self);
+  trap_WriteCoord(MSG_MULTICAST, org[0]);
+  trap_WriteCoord(MSG_MULTICAST, org[1]);
+  trap_WriteCoord(MSG_MULTICAST, org[2]);
+  trap_WriteCoord(MSG_MULTICAST, g_globalvars.trace_endpos[0]);
+  trap_WriteCoord(MSG_MULTICAST, g_globalvars.trace_endpos[1]);
+  trap_WriteCoord(MSG_MULTICAST, g_globalvars.trace_endpos[2]);
+
+  trap_multicast(PASSVEC3(org), MULTICAST_PHS);
+
+  VectorScale(g_globalvars.v_forward, 4, tmp);
+  VectorAdd(g_globalvars.trace_endpos, tmp, tmp);
+  HealbeamHeal(self->s.v.origin, tmp, 2);
+}
+
 void W_FireLightning() {
   vec3_t org;
   float cells;
@@ -1483,7 +1669,7 @@ void W_SetCurrentAmmo() {
 }
 
 const int best_weapon_list[] = {
-    WEAP_LIGHTNING, WEAP_ASSAULT_CANNON, WEAP_FLAMETHROWER, WEAP_SUPER_NAILGUN, WEAP_SUPER_SHOTGUN, WEAP_LASER, WEAP_NAILGUN, WEAP_SHOTGUN, WEAP_TRANQ, WEAP_MEDIKIT, WEAP_SPANNER, WEAP_AXE, 0,
+    WEAP_HEALGUN, WEAP_LIGHTNING, WEAP_ASSAULT_CANNON, WEAP_FLAMETHROWER, WEAP_SUPER_NAILGUN, WEAP_SUPER_SHOTGUN, WEAP_LASER, WEAP_NAILGUN, WEAP_SHOTGUN, WEAP_TRANQ, WEAP_MEDIKIT, WEAP_SPANNER, WEAP_AXE, 0,
 };
 int W_BestWeapon() {
   int it;
@@ -1727,6 +1913,11 @@ void W_Attack() {
     Attack_Finished(0.1);
     sound(self, 0, "weapons/lstart.wav", 1, 1);
     break;
+  case WEAP_HEALGUN:
+    player_healgun_fire();
+    Attack_Finished(0.2);
+    sound(self, 0, "weapons/lstart.wav", 0.5, 1);
+    break;
   case WEAP_SNIPER_RIFLE:
     if (((int)self->s.v.flags & FL_ONGROUND) || self->hook_out) {
       player_shot(113);
@@ -1914,7 +2105,7 @@ static struct w_impulse_s w_impulses[] = {
     {5, 0, {WEAP_SUPER_NAILGUN, 0}},
     {6, 0, {WEAP_FLAMETHROWER, WEAP_GRENADE_LAUNCHER, 0}},
     {7, 0, {WEAP_INCENDIARY, WEAP_ROCKET_LAUNCHER, WEAP_ASSAULT_CANNON, WEAP_GRENADE_LAUNCHER, 0}},
-    {8, 0, {WEAP_LIGHTNING, 0}},
+    {TF_HEALGUN, 0, {WEAP_HEALGUN, 0}},
     {TF_MEDIKIT, 0, {WEAP_MEDIKIT, 0}},
     {AXE_IMP, 0, {WEAP_SPANNER, WEAP_MEDIKIT, WEAP_HOOK, WEAP_AXE, 0}},
     {TF_HOOK_IMP1, 0, {WEAP_HOOK, 0}},
@@ -1968,6 +2159,7 @@ void W_ChangeWeapon() {
     while (wi->impulse && wi->impulse != self->s.v.impulse)
       wi++;
   }
+
   self->s.v.impulse = 0;
   if (!wi->impulse) {
     return;
@@ -1979,6 +2171,7 @@ void W_ChangeWeapon() {
       wi->mask |= *w++;
     };
   }
+
   if (wi->mask & it) {
     int *w = wi->weapons;
     while (*w && *w++ != fl)
@@ -2037,8 +2230,10 @@ const struct weapon_s weapon_cycle[] = {{WEAP_AXE, 0},
                                         {WEAP_ASSAULT_CANNON, 0},
                                         {WEAP_HOOK, 0},
                                         {WEAP_MEDIKIT, 0},
+                                        {WEAP_HEALGUN, 0},
                                         {0, 0}};
-const struct weapon_s weapon_cycle_rev[] = {{WEAP_MEDIKIT, 0},
+const struct weapon_s weapon_cycle_rev[] = {{WEAP_HEALGUN, 0},
+                                            {WEAP_MEDIKIT, 0},
                                             {WEAP_HOOK, 0},
                                             {WEAP_ASSAULT_CANNON, 0},
                                             {WEAP_INCENDIARY, 0},
@@ -2148,6 +2343,7 @@ void ImpulseCommands() {
     case 6:
     case 7:
     case 8:
+    case TF_HEALGUN:
     case TF_MEDIKIT:
     case AXE_IMP:
       W_ChangeWeapon();
@@ -2295,6 +2491,7 @@ void PreMatchImpulses() {
   case 6:
   case 7:
   case 8:
+  case TF_HEALGUN:
   case TF_MEDIKIT:
   case AXE_IMP:
     W_ChangeWeapon();
