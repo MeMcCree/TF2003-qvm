@@ -171,6 +171,7 @@ typedef struct gedict_s {
 	int             current_menu;
 	int             menu_count;
 	int             menu_displaytime;
+	int 		rockets_fired;
 
 	int             team_no, lives, infection_team_no;
 	struct gedict_s *building, *real_owner,*oldenemy;

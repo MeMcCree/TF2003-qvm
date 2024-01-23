@@ -673,7 +673,7 @@ void T_IncendiaryTouch(  )
 	}
 
 	self->s.v.effects = ( int ) self->s.v.effects | 4;
-	damg = 30 + g_random(  ) * 20;
+	damg = 18 + g_random(  ) * 2;
 
 	if ( other->s.v.health )
 	{
@@ -689,18 +689,21 @@ void T_IncendiaryTouch(  )
 		{
 			traceline( PASSVEC3( self->s.v.origin ), PASSVEC3( head->s.v.origin ), 1, self );
 			VectorSubtract( self->s.v.origin, head->s.v.origin, vtemp );
-			if ( g_globalvars.trace_fraction == 1
-			     || ( vlen( vtemp ) <= 64 ) )
-			{
-				tf_data.deathmsg = DMSG_FLAME;
-				TF_T_Damage( head, self, owner, 10, TF_TD_NOTTEAM, TF_TD_FIRE );
-				other = head;
-				if( !g_globalvars.trace_inwater)
-					Napalm_touch(  );
+            /*damg = 8.5;
+            if (g_globalvars.trace_fraction != 1 && (vlen( vtemp ) > 64)) {
+                damg = damg * 0.1;
+                if (vlen( vtemp ) > 96) continue;
+            }
+            TF_T_Damage( head, self, owner, damg, TF_TD_NOTTEAM, TF_TD_FIRE );
+			*/
+            if (g_globalvars.trace_fraction != 1 && (vlen( vtemp ) > 96)) continue;
+			tf_data.deathmsg = DMSG_FLAME;
+            other = head;
+			if( !g_globalvars.trace_inwater )
+				Napalm_touch(  );
 
-				if ( streq( other->s.v.classname, "player" ) )
-					stuffcmd( other, "bf\nbf\n" );
-			}
+			if ( streq( other->s.v.classname, "player" ) )
+				stuffcmd( other, "bf\nbf\n" );
 		}
 	}
 	normalize( self->s.v.velocity, vtemp );
@@ -715,14 +718,32 @@ void T_IncendiaryTouch(  )
 W_FireIncendiaryCannon
 ================
 */
+
+void W_FireIncendiaryCannonTh() {
+    self->s.v.think = (func_t)W_FireIncendiaryCannonTh;
+    self->s.v.nextthink = g_globalvars.time + 0.10;
+
+    self->s.v.weaponframe = self->s.v.weaponframe + 1;
+    if ( self->rockets_fired == 3)
+    {
+        if (self->s.v.weaponframe >= 5) player_run(  );
+        return;
+    }
+    self->rockets_fired = self->rockets_fired + 1;
+
+    muzzleflash(  );
+    W_FireIncendiaryCannon(  );
+    Attack_Finished( 1.0 );
+}
+
 void W_FireIncendiaryCannon(  )
 {
 	vec3_t  vtemp;
 
-	if ( self->s.v.ammo_rockets < 3 )
+	if ( self->s.v.ammo_rockets < 1 )
 		return;
 	if ( !tg_data.unlimit_ammo )
-		self->s.v.currentammo = self->s.v.ammo_rockets = self->s.v.ammo_rockets - 3;
+		self->s.v.currentammo = self->s.v.ammo_rockets = self->s.v.ammo_rockets - 1;
 
 	sound( self, 1, "weapons/sgun1.wav", 1, 1 );
 	KickPlayer( -3, self );
@@ -745,7 +766,7 @@ void W_FireIncendiaryCannon(  )
 	newmis->s.v.think = ( func_t ) SUB_Remove;
 	newmis->s.v.weapon = DMSG_INCENDIARY;
 
-	setmodel( newmis, "progs/missile.mdl" );
+	setmodel( newmis, "progs/flameball.mdl" );
 	setsize( newmis, 0, 0, 0, 0, 0, 0 );
 
 	VectorScale( g_globalvars.v_forward, 8, vtemp );
@@ -760,7 +781,7 @@ void TeamFortress_IncendiaryCannon(  )
 {
 	if ( !( self->weapons_carried & WEAP_INCENDIARY ) )
 		return;
-	if ( self->s.v.ammo_rockets < 3 )
+	if ( self->s.v.ammo_rockets < 1 )
 	{
 		G_sprint( self, 2, "not enough ammo.\n" );
 		return;

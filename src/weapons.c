@@ -1057,126 +1057,126 @@ void HealbeamHeal(vec3_t p1, vec3_t p2, float healam) {
   e = PROG_TO_EDICT(g_globalvars.trace_ent);
   if (e->s.v.takedamage) {
     if (streq(e->s.v.classname, "player")) {
-      if ((TeamFortress_isTeamsAllied(e->team_no, self->team_no) && self->team_no) || coop) {
-        // Concussion heal
+      // Concussion heal
+      for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
+        if (te->s.v.owner != g_globalvars.trace_ent)
+          continue;
+        if (te->s.v.think != (func_t)ConcussionGrenadeTimer && te->s.v.think != (func_t)OldConcussionGrenadeTimer)
+          continue;
+        if (tfset(old_grens)) {
+          stuffcmd(e, "v_idlescale 0\nfov 90\n");
+          e->eff_info.conc_idle = 0;
+        }
+        SpawnBlood(g_globalvars.trace_endpos, 20);
+        G_bprint(1, "%s cured %s's concussion\n", self->s.v.netname, e->s.v.netname);
+        if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+          TF_AddFrags(self, 1);
+        dremove(te);
+        break;
+      }
+
+      // Hallucination heal
+      if (e->tfstate & TFSTATE_HALLUCINATING) {
         for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
           if (te->s.v.owner != g_globalvars.trace_ent)
             continue;
-          if (te->s.v.think != (func_t)ConcussionGrenadeTimer && te->s.v.think != (func_t)OldConcussionGrenadeTimer)
+          if (te->s.v.think != (func_t)HallucinationTimer)
             continue;
-          if (tfset(old_grens)) {
-            stuffcmd(e, "v_idlescale 0\nfov 90\n");
-            e->eff_info.conc_idle = 0;
-          }
+
+          e->tfstate -= (e->tfstate & TFSTATE_HALLUCINATING);
           SpawnBlood(g_globalvars.trace_endpos, 20);
-          G_bprint(1, "%s cured %s's concussion\n", self->s.v.netname, e->s.v.netname);
+          G_bprint(1, "%s healed %s of his hallucinations\n", self->s.v.netname, e->s.v.netname);
+
+          ResetGasSkins(e);
+          if (tfset_new_gas & GAS_MASK_PALETTE)
+            stuffcmd(e, "v_cshift; wait; bf\n");
           if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
             TF_AddFrags(self, 1);
           dremove(te);
           break;
         }
+        if (!te)
+          G_conprintf("Warning: Error in Hallucination Timer logic.\n");
+      }
 
-        // Hallucination heal
-        if (e->tfstate & TFSTATE_HALLUCINATING) {
-          for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
-            if (te->s.v.owner != g_globalvars.trace_ent)
-              continue;
-            if (te->s.v.think != (func_t)HallucinationTimer)
-              continue;
+      // Tranquilisation heal
+      if (e->tfstate & TFSTATE_TRANQUILISED) {
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
+          if (te->s.v.owner != g_globalvars.trace_ent)
+            continue;
+          if (te->s.v.think != (func_t)TranquiliserTimer)
+            continue;
 
-            e->tfstate -= (e->tfstate & TFSTATE_HALLUCINATING);
-            SpawnBlood(g_globalvars.trace_endpos, 20);
-            G_bprint(1, "%s healed %s of his hallucinations\n", self->s.v.netname, e->s.v.netname);
-
-            ResetGasSkins(e);
-            if (tfset_new_gas & GAS_MASK_PALETTE)
-              stuffcmd(e, "v_cshift; wait; bf\n");
-            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
-              TF_AddFrags(self, 1);
-            dremove(te);
-            break;
-          }
-          if (!te)
-            G_conprintf("Warning: Error in Hallucination Timer logic.\n");
+          e->tfstate -= (e->tfstate & TFSTATE_TRANQUILISED);
+          TeamFortress_SetSpeed(e);
+          SpawnBlood(g_globalvars.trace_endpos, 20);
+          G_bprint(1, "%s healed %s's tranquilisation\n", self->s.v.netname, e->s.v.netname);
+          if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+            TF_AddFrags(self, 1);
+          dremove(te);
+          break;
         }
+        if (!te)
+          G_conprintf("Warning: Error in Tranquilisation Timer logic.\n");
+      }
 
-        // Tranquilisation heal
-        if (e->tfstate & TFSTATE_TRANQUILISED) {
-          for (te = world; (te = trap_find(te, FOFS(s.v.classname), "timer"));) {
-            if (te->s.v.owner != g_globalvars.trace_ent)
-              continue;
-            if (te->s.v.think != (func_t)TranquiliserTimer)
-              continue;
+      // Blindness heal
+      if (e->FlashTime > 0) {
+        for (te = world; (te = trap_find(te, FOFS(s.v.netname), "flashtimer"));) {
+          if (te->s.v.owner != g_globalvars.trace_ent)
+            continue;
+          if (strneq(te->s.v.classname, "timer"))
+            continue;
 
-            e->tfstate -= (e->tfstate & TFSTATE_TRANQUILISED);
-            TeamFortress_SetSpeed(e);
-            SpawnBlood(g_globalvars.trace_endpos, 20);
-            G_bprint(1, "%s healed %s's tranquilisation\n", self->s.v.netname, e->s.v.netname);
-            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
-              TF_AddFrags(self, 1);
-            dremove(te);
-            break;
-          }
-          if (!te)
-            G_conprintf("Warning: Error in Tranquilisation Timer logic.\n");
+          e->FlashTime = 0;
+          SpawnBlood(g_globalvars.trace_endpos, 20);
+          G_bprint(1, "%s cured %s's blindness\n", self->s.v.netname, e->s.v.netname);
+          if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
+            TF_AddFrags(self, 1);
+          if (tfset(new_flash))
+            disableupdates(e, -1); /* server-side flash */
+          break;
         }
-
-        // Blindness heal
-        if (e->FlashTime > 0) {
-          for (te = world; (te = trap_find(te, FOFS(s.v.netname), "flashtimer"));) {
-            if (te->s.v.owner != g_globalvars.trace_ent)
-              continue;
-            if (strneq(te->s.v.classname, "timer"))
-              continue;
-
-            e->FlashTime = 0;
-            SpawnBlood(g_globalvars.trace_endpos, 20);
-            G_bprint(1, "%s cured %s's blindness\n", self->s.v.netname, e->s.v.netname);
-            if (!TeamFortress_isTeamsAllied(te->team_no, self->team_no))
-              TF_AddFrags(self, 1);
-            if (tfset(new_flash))
-              disableupdates(e, -1); /* server-side flash */
-            break;
-          }
-          if (!te) {
-            G_conprintf("Warning: Error in Flash Timer logic.\n");
-            e->FlashTime = 0;
-          }
+        if (!te) {
+          G_conprintf("Warning: Error in Flash Timer logic.\n");
+          e->FlashTime = 0;
         }
+      }
 
-        // Infection heal
-        if (e->tfstate & TFSTATE_INFECTED) {
-          healdmg = Q_rint(e->s.v.health / 2);
-          e->tfstate -= (e->tfstate & TFSTATE_INFECTED);
-          tf_data.deathmsg = DMSG_MEDIKIT;
-          T_Damage(e, self, self, healdmg);
-          SpawnBlood(g_globalvars.trace_endpos, 30);
-          if (streq(self->s.v.classname, "player")) {
-            G_bprint(1, "%s cured %s's infection\n", self->s.v.netname, e->s.v.netname);
-            if (!TeamFortress_isTeamsAllied(e->infection_team_no, self->team_no))
-              TF_AddFrags(self, 1);
-          }
-          return;
+      // Infection heal
+      if (e->tfstate & TFSTATE_INFECTED) {
+        healdmg = Q_rint(e->s.v.health / 2);
+        e->tfstate -= (e->tfstate & TFSTATE_INFECTED);
+        tf_data.deathmsg = DMSG_MEDIKIT;
+        T_Damage(e, self, self, healdmg);
+        SpawnBlood(g_globalvars.trace_endpos, 30);
+        if (streq(self->s.v.classname, "player")) {
+          G_bprint(1, "%s cured %s's infection\n", self->s.v.netname, e->s.v.netname);
+          if (!TeamFortress_isTeamsAllied(e->infection_team_no, self->team_no))
+            TF_AddFrags(self, 1);
         }
+        return;
+      }
 
-        // Put out flames
-        if (e->numflames > 0) {
-          sound(e, 1, "items/r_item1.wav", 1, 1);
-          e->numflames = 0;
-          if (streq(self->s.v.classname, "player")) {
-            G_bprint(1, "%s put out %s's fire.\n", self->s.v.netname, e->s.v.netname);
-          }
-          return;
+      // Put out flames
+      if (e->numflames > 0) {
+        sound(e, 1, "items/r_item1.wav", 1, 1);
+        e->numflames = 0;
+        if (streq(self->s.v.classname, "player")) {
+          G_bprint(1, "%s put out %s's fire.\n", self->s.v.netname, e->s.v.netname);
         }
+        return;
       }
 
       if (e->s.v.health < e->s.v.max_health) {
         T_Heal(e, healam, 0);
         sound(e, 1, "items/r_item1.wav", 1, 1);
+        sound(self, 1, "items/r_item1.wav", 1, 1);
       } else if (e->s.v.health >= e->s.v.max_health && e->s.v.health < e->s.v.max_health + WEAP_MEDIKIT_OVERHEAL) {
         sound(e, 1, "items/r_item1.wav", 1, 1);
+        sound(self, 1, "items/r_item1.wav", 1, 1);
         T_Heal(e, healam / 2, 1);
-        
+
         if (!((int)e->s.v.items & IT_SUPERHEALTH)) {
           e->s.v.items = (int)e->s.v.items | IT_SUPERHEALTH;
           newmis = spawn();
@@ -1204,7 +1204,7 @@ void W_FireHealbeam() {
   }
 
   if (self->t_width < g_globalvars.time) {
-    sound(self, 1, "weapons/lhit.wav", 1, 1);
+    sound(self, 1, "weapons/lhit.wav", 0.1, 1);
     self->t_width = g_globalvars.time + 0.6;
   }
 
@@ -1916,7 +1916,7 @@ void W_Attack() {
   case WEAP_HEALGUN:
     player_healgun_fire();
     Attack_Finished(0.2);
-    sound(self, 0, "weapons/lstart.wav", 0.5, 1);
+    sound(self, 0, "weapons/lstart.wav", 0.1, 1);
     break;
   case WEAP_SNIPER_RIFLE:
     if (((int)self->s.v.flags & FL_ONGROUND) || self->hook_out) {
@@ -1954,9 +1954,11 @@ void W_Attack() {
     }
     break;
   case WEAP_INCENDIARY:
-    player_shot(107);
-    W_FireIncendiaryCannon();
-    Attack_Finished(1.2);
+    // player_shot(107);
+    self->s.v.weaponframe = 2;
+    self->rockets_fired = 0;
+    W_FireIncendiaryCannonTh();
+    Attack_Finished(2.4);
     break;
   case WEAP_MEDIKIT:
     sound(self, 1, "weapons/ax1.wav", 1, 1);

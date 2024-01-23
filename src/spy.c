@@ -418,6 +418,7 @@ void GasGrenadeExplode(  )
     if ( pos == CONTENT_EMPTY )
     {
         te = spawn(  );
+        te->s.v.health = 4;
         te->s.v.think = ( func_t ) GasGrenadeMakeGas;
         te->s.v.nextthink = g_globalvars.time + 0.1;
         te->heat = 0;
@@ -449,6 +450,16 @@ void GasGrenadeMakeGas(  )
     self->s.v.nextthink = g_globalvars.time + 0.75;
     for ( te = world; (te = trap_findradius( te, self->s.v.origin, 200 )); )
     {
+        if ( streq( te->s.v.classname, "flamerflame" ) ) {
+            if (self->s.v.health == 1) {
+                dremove(self);
+                dremove(te);
+                G_bprint(1, "%s burned the gas of %s!\n", PROG_TO_EDICT(te->s.v.owner)->s.v.netname, PROG_TO_EDICT(self->s.v.owner)->s.v.netname);
+                TF_AddFrags(PROG_TO_EDICT(te->s.v.owner), 1);
+                return;
+            }
+            self->s.v.health--;
+        }
         if ( streq( te->s.v.classname, "player" ) && !te->s.v.deadflag && te->has_disconnected != 1 )
         {
             tf_data.deathmsg = DMSG_GREN_GAS;
