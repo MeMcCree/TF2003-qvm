@@ -2346,6 +2346,8 @@ void ImpulseCommands() {
     case 7:
     case 8:
     case TF_HEALGUN:
+      ThrowMedkit();
+      break;
     case TF_MEDIKIT:
     case AXE_IMP:
       W_ChangeWeapon();

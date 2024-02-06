@@ -51,6 +51,7 @@ set( SOURCE_LIB
     "${DIR_SRC}/mathlib.c"
     "${DIR_SRC}/menu.c"
     "${DIR_SRC}/misc.c"
+    "${DIR_SRC}/medic.c"
     "${DIR_SRC}/plats.c"
     "${DIR_SRC}/player.c"
     "${DIR_SRC}/pyro.c"

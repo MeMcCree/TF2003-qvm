@@ -221,6 +221,7 @@ void      W_FireFlame(  );
 void      W_FireIncendiaryCannon(  );
 void      W_FireTranq(  );
 void      W_FireLaser(  );
+void 	  ThrowMedkit();
      		
 
 void BecomeExplosion();

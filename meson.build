@@ -37,6 +37,7 @@ sources = [
     'src/mathlib.c',
     'src/menu.c',
     'src/misc.c',
+    'src/medic.c',
     'src/plats.c',
     'src/player.c',
     'src/pyro.c',

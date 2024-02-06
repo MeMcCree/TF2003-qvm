@@ -309,6 +309,7 @@ void SP_worldspawn(  )
 	trap_precache_model( "progs/m_g_key.mdl" );
 	trap_precache_model( "progs/b_g_key.mdl" );
 	trap_precache_model( "progs/flameball.mdl" );
+	trap_precache_model("maps/b_bh25.bsp");
 
 	trap_precache_model( "progs/s_light.spr" );
 //
