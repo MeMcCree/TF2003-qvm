@@ -259,6 +259,9 @@
 #define TF_ENGINEER_DETDISP     187  // Engineer: Detonate dispenser for Engineer
 #define TF_ENGINEER_DETSENTRY   188  // Engineer: Detonate sentry gun for Engineer
 
+#define TF_UNREADY 200
+#define TF_READY 201
+
 /*==================================================*/
 /* Colors           */
 /*==================================================*/

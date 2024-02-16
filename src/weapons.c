@@ -2331,6 +2331,10 @@ void PreMatchImpulses() {
   case TF_DISPLAYLOCATION:
     display_location();
     break;
+  case 200:
+  case 201:
+    ChangeReadyState((int)self->s.v.impulse - 200);
+    break;
   }
 }
 

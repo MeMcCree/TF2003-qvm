@@ -342,3 +342,90 @@ void UpdateServerinfoScores()
         }
 
 }
+
+char not_ready_str[] = {
+	'n', 'o', 't', ' ', (char)242, (char)229, (char)225, (char)228, (char)249, '\n', 0
+};
+char ready_str[] = "ready    \n";
+char padding_string[] = "                                ";
+
+void PreMatchReady_Think() {
+	gedict_t* te;
+	char   stmp[1024];
+	char   line[64];
+	int mxlen, oldlen;
+
+	stmp[0] = '\0';
+	line[0] = '\0';
+	if (tf_data.cb_prematch_time - g_globalvars.time) {
+		mxlen = 0;
+		for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+			CenterPrint(te, "\n");
+			if (strlen(te->s.v.netname) > mxlen) {
+				mxlen = strlen(te->s.v.netname);
+			}
+		}
+		for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+			CenterPrint(te, "\n");
+			_snprintf(line, sizeof(line), "%s", te->s.v.netname);
+			oldlen = strlen(line);
+			if (oldlen < mxlen) {
+				padding_string[mxlen - oldlen] = '\0';
+				strcat(line, padding_string);
+				padding_string[mxlen - oldlen] = ' ';
+			}
+			strcat(line, "    ");
+			strcat(line, (te->ready ? ready_str : not_ready_str));
+			strcat(stmp, line);
+		}
+		for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+			G_centerprint(te, "%s\n", stmp);
+			te->StatusRefreshTime = g_globalvars.time + 1.5;
+		}
+	}
+	self->s.v.nextthink = g_globalvars.time + 1;
+}
+
+void ChangeReadyState(int state) {
+	gedict_t* te, *prematch;
+	int maxclients, readied_up;
+
+	if (tf_data.cb_prematch_time - g_globalvars.time <= 0) {
+		return;
+	}
+
+	prematch = world;
+        prematch = trap_find(prematch, FOFS(s.v.classname), "prematch");
+	if (prematch->heat == 1) {
+		return;
+	}
+
+	self->ready = state;
+	maxclients = trap_cvar("maxclients");
+	readied_up = 0;
+	for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+		if (te->ready) {
+			readied_up++;
+		}
+	}
+	if (state == 1) {
+		if (readied_up == maxclients) {
+			for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+				G_centerprint(te, "Prepare to fight!\n", self->s.v.netname, readied_up, maxclients);
+				te->StatusRefreshTime = g_globalvars.time + 1;
+			}
+			G_conprintf("%f %f %d\n", tf_data.cb_prematch_time, g_globalvars.time, timelimit);
+			timelimit -= ceil(tf_data.cb_prematch_time - g_globalvars.time); // -15
+		        trap_cvar_set_float("timelimit", (float)timelimit / 60.0f);
+			G_conprintf("%f %d %f\n", g_globalvars.time, timelimit, trap_cvar("timelimit"));
+		        tf_data.cb_prematch_time = g_globalvars.time + 10;
+		        prematch->s.v.nextthink = g_globalvars.time;
+		        prematch->heat = 1;
+		        prematch = world;
+        		prematch = trap_find(prematch, FOFS(s.v.classname), "prematch_ready");
+        		if (prematch != world) {
+        			dremove(prematch);
+			}
+		}
+	}
+}

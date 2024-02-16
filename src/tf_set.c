@@ -516,8 +516,15 @@ void   TF_FinalizeSettings( )
     {
         tf_data.cb_prematch_time += 5;
         ent = spawn();
+        ent->s.v.classname = "prematch";
         ent->s.v.think = ( func_t ) PreMatch_Think;
         ent->s.v.nextthink = g_globalvars.time + 5;
+        ent->heat = 0;
+
+        ent = spawn();
+        ent->s.v.classname = "prematch_ready";
+        ent->s.v.think = (func_t)PreMatchReady_Think;
+        ent->s.v.nextthink = g_globalvars.time + 1;
 
         tf_data.cb_ceasefire_time = tfset_ceasefire_time;//GetSVInfokeyFloat( "cft", "ceasefire_time", 0 );
 
@@ -554,7 +561,7 @@ void   TF_FinalizeSettings( )
     {
         timelimit += tf_data.cb_prematch_time;
 
-        trap_cvar_set_float( "timelimit", timelimit );
+        trap_cvar_set_float( "timelimit", timelimit / 60 );
     }
 
     if( tfset_autoteam_time > 0 )

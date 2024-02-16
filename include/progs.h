@@ -137,6 +137,7 @@ typedef struct gedict_s {
 	void            ( *th_pain ) ( struct gedict_s *, float );
 
 ///team fortess
+	int 		ready;
 	int             playerclass, nextpc;
 	int             armorclass;
 	int             tf_items, tf_items_flags;

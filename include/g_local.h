@@ -287,6 +287,7 @@ void CenterPrint( gedict_t * pl, const char *fmt, ... );
 float crossproduct( vec3_t veca, vec3_t vecb );
 
 ///clan
+void ChangeReadyState(int state);
 
 //hook
 void  Reset_Grapple(gedict_t* rhook);
