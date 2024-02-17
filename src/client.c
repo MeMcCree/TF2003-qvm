@@ -377,8 +377,20 @@ void IntermissionThink()
 void execute_changelevel()
 {
     gedict_t *pos;
+    fileHandle_t handle = 0;
+    int cnt;
 
-    G_conprintf( "execute_changelevel()\n" );
+    if (tfset(pugmode)) {
+        cnt = trap_FS_OpenFile("pickupbot/pickupbot.txt", &handle, FS_WRITE_BIN);
+        if (cnt >= 0) {
+            trap_FS_WriteFile("matchend", 8, handle);
+            trap_FS_CloseFile(handle);    
+        } else {
+            G_conprintf("file not found\n");
+        }
+
+        G_conprintf( "execute_changelevel()\n" );
+    }
     StopDemoRecord();
 
     intermission_running = 1;
@@ -1042,6 +1054,10 @@ void NextLevel()
 
 void CheckRules()
 {
+    if (timelimit_ad && g_globalvars.time >= timelimit_ad) {
+        timelimit_ad = 0;
+        AttackDefendSecondRound();
+    }
     if ( timelimit && g_globalvars.time >= timelimit )
         NextLevel();
 

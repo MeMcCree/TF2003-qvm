@@ -46,6 +46,9 @@ static const set_bits_t sv_settings_bits[] = {
   { "SG New Find", "sg_newfind", "", svsb_sg_newfind        , true  },
   { "SG New Rockets", "sg_rfire", "", svsb_sg_rfire        , true  },
   { "Pyro flame walls", "pyrotype", "", svsb_pyrotype        , false  },
+  { "Prematch ready mode", "prematch_readymode", "", svsb_prematch_readymode        , false  },
+  { "Pick-up game mode", "pugmode", "", svsb_pugmode        , false  },
+  { "Attack defend mode", "admode", "", svsb_admode        , false  },
   { NULL, },
 };
 static const set_bits_t toggleflags_bits[] = {
@@ -521,10 +524,12 @@ void   TF_FinalizeSettings( )
         ent->s.v.nextthink = g_globalvars.time + 5;
         ent->heat = 0;
 
-        ent = spawn();
-        ent->s.v.classname = "prematch_ready";
-        ent->s.v.think = (func_t)PreMatchReady_Think;
-        ent->s.v.nextthink = g_globalvars.time + 1;
+        if (tfset(prematch_readymode)) {
+            ent = spawn();
+            ent->s.v.classname = "prematch_ready";
+            ent->s.v.think = (func_t)PreMatchReady_Think;
+            ent->s.v.nextthink = g_globalvars.time + 1;
+        }
 
         tf_data.cb_ceasefire_time = tfset_ceasefire_time;//GetSVInfokeyFloat( "cft", "ceasefire_time", 0 );
 

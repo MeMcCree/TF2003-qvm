@@ -136,6 +136,9 @@ extern set_item_t tf_settings[];
 #define svsb_sg_newfind         1<<21
 #define svsb_sg_rfire           1<<22
 #define svsb_pyrotype           1<<23
+#define svsb_prematch_readymode 1<<24
+#define svsb_pugmode            1<<25
+#define svsb_admode             1<<26
 
 #define TFSET_MOD_CONSOLE 2
 #define TFSET_LOCALINFO   1

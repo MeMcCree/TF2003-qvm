@@ -104,6 +104,7 @@ void W_Precache() {
   trap_precache_sound("weapons/railgun.wav"); // Railgun
   trap_precache_sound("weapons/dartgun.wav"); // Spy's dart gun
   trap_precache_sound("count.wav");           // grenade prime sound
+  trap_precache_sound("buttons/switch04.wav");
 
   trap_precache_model("progs/v_flame.mdl");
   trap_precache_model("progs/v_tgun.mdl");
