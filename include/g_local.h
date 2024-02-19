@@ -77,7 +77,7 @@ extern globalvars_t g_globalvars;
 extern gedict_t *world;
 extern gedict_t *self, *other;
 extern gedict_t *newmis;
-extern int      timelimit, fraglimit, teamplay, deathmatch, framecount, coop, api_ver;
+extern int      timelimit, timelimit_ad, fraglimit, teamplay, deathmatch, framecount, coop, api_ver;
 
 #define	EDICT_TO_PROG(e) ((byte *)(e) - (byte *)g_edicts)
 #define PROG_TO_EDICT(e) ((gedict_t *)((byte *)g_edicts + (e)))

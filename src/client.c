@@ -1055,9 +1055,10 @@ void NextLevel()
 void CheckRules()
 {
     if (timelimit_ad && g_globalvars.time >= timelimit_ad) {
-        timelimit_ad = 0;
-        AttackDefendSecondRound();
+       timelimit_ad = 0;
+       AttackDefendSecondRound();
     }
+    
     if ( timelimit && g_globalvars.time >= timelimit )
         NextLevel();
 

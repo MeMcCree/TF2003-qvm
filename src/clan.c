@@ -77,8 +77,9 @@ void PreMatch_Think(  )
     MatchTimer( true );
     if ( tfset(game_locked) )
         G_bprint( 2, "GAME IS NOW LOCKED\n" );
-    teamscores[0] = teamscores[1] = teamscores[2] = teamscores[3] = teamscores[4] = 0;
-    teamfrags[0] = teamfrags[1] = teamfrags[2] = teamfrags[3] = teamfrags[4] = 0;
+    // Disabled for ad mode
+    //teamscores[0] = teamscores[1] = teamscores[2] = teamscores[3] = teamscores[4] = 0;
+    //teamfrags[0] = teamfrags[1] = teamfrags[2] = teamfrags[3] = teamfrags[4] = 0;
 //paranoid ?????????
     if( tf_data.cease_fire )    
     {
@@ -115,6 +116,8 @@ void PreMatch_Think(  )
 
         self = oldself;
     }
+
+    dremove(self);
 }
 
 void TeamFortress_ShowIDs(  )
@@ -283,7 +286,6 @@ void DumpClanScores(  )
         }
     }
     MatchTimer( true );
-    dremove(self);
 }
 
 void MatchTimer( qboolean force )
@@ -355,9 +357,13 @@ void UpdateCountdown(int time_left) {
 }
 
 char not_ready_str[] = {
-    'n', 'o', 't', ' ', (char)242, (char)229, (char)225, (char)228, (char)249, '\n', 0
+    (char)0x87, ' ', 'n', 'o', 't', ' ', '&', 'c', 'f', '2', '0', 'r', 'e', 'a', 'd', 'y', '&', 'r', '\n', 0
 };
-char ready_str[] = "ready    \n";
+
+char ready_str[] = {
+    (char)0x86, ' ', 'r', 'e', 'a', 'd', 'y', ' ', ' ', ' ', ' ', '\n', '\0'
+};
+
 char padding_string[] = "                                ";
 
 void PreMatchReady_Think() {
@@ -397,7 +403,7 @@ void PreMatchReady_Think() {
             }
         }
         for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
-            G_centerprint(te, "Blue\n\n%s\nRed\n\n%s\n", bstmp, rstmp);
+            G_centerprint(te, "&c44fBlue&r\n\n%s\n&cf00Red&r\n\n%s\n\n%s", bstmp, rstmp, (te->ready ? "\n" : "&c888----------------&r\n\nType &cf20/ready&r to ready up\n"));
             te->StatusRefreshTime = g_globalvars.time + 1.5;
         }
     }
@@ -405,6 +411,8 @@ void PreMatchReady_Think() {
 }
 
 void AttackDefendSecondRound() {
+    gedict_t* ent, *oldself, *owner, *te, *gren, *Goal, *olderself;
+
     tfset_flagoff(admode);
 
     ent = spawn();
@@ -418,6 +426,93 @@ void AttackDefendSecondRound() {
         ent->s.v.classname = "prematch_ready";
         ent->s.v.think = (func_t)PreMatchReady_Think;
         ent->s.v.nextthink = g_globalvars.time + 1;
+    }
+
+    tf_data.cb_prematch_time = g_globalvars.time + 6000;
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        oldself = self;
+        self = te;
+        if (!self->tf_id) {
+            last_id = last_id + 20 + g_random(  ) * 10;
+            self->tf_id = g_random(  ) * 10 + last_id;
+            stuffcmd( self, "setinfo tf_id %d\n", self->tf_id );
+            G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
+        }
+
+        TeamFortress_RemoveTimers(  );
+        for (gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" ));) {
+            if (gren->s.v.owner == EDICT_TO_PROG(self))
+                gren->s.v.nextthink = g_globalvars.time + 0.1;
+        }
+        
+        TF_T_Damage(self, world, world, self->s.v.health + 1, TF_TD_IGNOREARMOUR, 0);
+
+        Engineer_RemoveBuildings(self);
+        ent = trap_find(world, FOFS(s.v.classname), "detpack");
+        while (ent) {
+            if (ent->real_owner == self) {
+                if (ent->weaponmode == 1) {
+                    TeamFortress_SetSpeed(PROG_TO_EDICT(ent->s.v.enemy));
+                    dremove(ent->oldenemy);
+                    dremove(ent->observer_list);
+                }
+                dremove(ent);
+                ent = world;
+            }
+            ent = trap_find(ent, FOFS(s.v.classname), "detpack");
+        }
+
+        self = oldself;
+    }
+
+    Goal = trap_find(world, FOFS(s.v.classname), "info_tfdetect");
+    ent = Finditem(Goal->display_item_status1);
+
+    if (ent) {
+        owner = PROG_TO_EDICT(ent->s.v.owner);
+        if(owner != world) {
+            tfgoalitem_RemoveFromPlayer(ent, owner, 1);
+        }
+        oldself = self;
+        self = ent;
+        tfgoalitem_remove();
+        self = oldself;
+    }
+
+    ent = Finditem(Goal->display_item_status2);
+
+    if (ent) {
+        owner = PROG_TO_EDICT(ent->s.v.owner);
+        if(owner != world) {
+            tfgoalitem_RemoveFromPlayer(ent, owner, 1);
+        }
+        oldself = self;
+        self = ent;
+        tfgoalitem_remove();
+        self = oldself;
+    }
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "func_button"));) {
+        G_conprintf("button");
+        te->s.v.think = 0;
+        oldself = self;
+        self = te;
+        button_return();
+        G_conprintf("%s\n%s\n%s", self->s.v.target, self->s.v.message, self->killtarget);
+        
+        if (self->s.v.target) {
+            for (ent = world; (ent = trap_find(ent, FOFS(s.v.targetname), self->s.v.target));) {
+                olderself = self;
+                self = ent;
+                if (streq(ent->s.v.classname, "door")) {
+                    door_go_down();
+                }
+                self = olderself;
+            }
+        }
+
+        self = oldself;
     }
 }
 
@@ -452,8 +547,7 @@ void ChangeReadyState(int state) {
     if (state == 1) {
         if (readied_up == maxclients) {
             for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
-                G_centerprint(te, "Prepare to fight!\n", self->s.v.netname, readied_up, maxclients);
-                te->StatusRefreshTime = g_globalvars.time + 1;
+                te->ready = 0;
             }
             prematch->s.v.nextthink = g_globalvars.time;
             prematch->heat = 1;
@@ -463,9 +557,10 @@ void ChangeReadyState(int state) {
                 dremove(prematch);
             }
             if (tfset(admode)) {
-                timelimit_ad = g_globalvars.time + timelimit - tfset_prematch_time * 60;
+                timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
+                G_conprintf("%f %f %f", (float)timelimit, (float)timelimit_ad, g_globalvars.time);
             } else {
-                timelimit -= tf_data.cb_prematch_time - 10;
+                timelimit = g_globalvars.time + tfset_roundtime * 60.0 + 10;
                 trap_cvar_set_float("timelimit", (float)timelimit / 60.0f);
             }
             tf_data.cb_prematch_time = g_globalvars.time + 10;

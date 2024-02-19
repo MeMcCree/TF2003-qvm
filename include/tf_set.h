@@ -106,8 +106,9 @@ extern set_item_t tf_settings[];
 #define tfset_snip_time			(tf_settings[14].val._float)
 #define tfset_new_gas			(tf_settings[15].val._uint)
 #define tfset_gren2box			(tf_settings[16].val._uint)
-#define tfset_arena_mode         (tf_settings[17].val._int)
+#define tfset_arena_mode        (tf_settings[17].val._int)
 #define tfset_drop_mode         (tf_settings[32].val._int)
+#define tfset_roundtime         (tf_settings[33].val._float)
 
 #define tfset_team_name(tno)    tf_settings[18 + (tno) -1 ].val._str
 #define tfset_classrestricted(pc)    (tf_settings[22 + (pc) -1 ].val._int)

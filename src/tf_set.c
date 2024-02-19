@@ -156,6 +156,7 @@ set_item_t tf_settings[] = {
 /*30*/    {"Limit engineer","cr_en", "cr_engineer", TFS_INT, 0, NULL, NULL, "0" },
 /*31*/    {"Limit random",  "cr_ra", "cr_random", TFS_INT, 0, NULL, NULL, "0" },
 /*32*/    {"Flag drop mode",  "fl_dr_md", "fl_drop_mode", TFS_INT_SET, 0, NULL, set_flag_drop_mode, "0" },
+/*33*/    {"Round time",  "roundtime", "", TFS_FLOAT, 0, NULL, NULL, "0" },
 /*  */    { NULL } 
 };
 
