@@ -140,6 +140,7 @@ extern set_item_t tf_settings[];
 #define svsb_prematch_readymode 1<<24
 #define svsb_pugmode            1<<25
 #define svsb_admode             1<<26
+#define svsb_prematch_godmode   1<<27
 
 #define TFSET_MOD_CONSOLE 2
 #define TFSET_LOCALINFO   1

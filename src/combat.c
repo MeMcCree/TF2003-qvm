@@ -174,7 +174,6 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 	float   take;
 
 //      char    attackerteam[10], targteam[10];
-
 	if ( !targ->s.v.takedamage )
 		return;
 
@@ -261,7 +260,10 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 
 		}
 	}
-	if ( streq( targ->s.v.classname, "player" ) && tg_data.godmode )
+	if (tf_data.cb_prematch_time > g_globalvars.time && tfset(prematch_godmode)) {
+		sound(targ, CHAN_ITEM, "items/protect3.wav", 1, ATTN_NORM);
+	}
+	if ( streq( targ->s.v.classname, "player" ) && (tg_data.godmode || tf_data.cb_prematch_time > g_globalvars.time && tfset(prematch_godmode)) )
 		return;
 
 // check for godmode or invincibility
@@ -365,6 +367,10 @@ void TF_T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker,
 	if ( tf_data.cease_fire )
 		return;
 	no_damage = 0;
+	if (tf_data.cb_prematch_time > g_globalvars.time && tfset(prematch_godmode)) {
+		sound(targ, CHAN_ITEM, "items/protect3.wav", 1, ATTN_NORM);
+		no_damage = 1;
+	}
 	if ( streq( attacker->s.v.classname, "player" ) )
 	{
 		damage = damage * 0.9;

@@ -378,12 +378,14 @@ void execute_changelevel()
 {
     gedict_t *pos;
     fileHandle_t handle = 0;
+    char results_string[128];
     int cnt;
 
     if (tfset(pugmode)) {
         cnt = trap_FS_OpenFile("pickupbot/pickupbot.txt", &handle, FS_WRITE_BIN);
         if (cnt >= 0) {
-            trap_FS_WriteFile("matchend", 8, handle);
+            _snprintf(results_string, sizeof(results_string), "matchend %d %d", teamscores[1], teamscores[2]);
+            trap_FS_WriteFile(results_string, strlen(results_string), handle);
             trap_FS_CloseFile(handle);    
         } else {
             G_conprintf("file not found\n");
@@ -1054,16 +1056,19 @@ void NextLevel()
 
 void CheckRules()
 {
+    
+    if ( timelimit && g_globalvars.time >= timelimit ) {
+        NextLevel();
+        return;
+    }
+
+    if ( fraglimit && self->s.v.frags >= fraglimit )
+        NextLevel();
+    
     if (timelimit_ad && g_globalvars.time >= timelimit_ad) {
        timelimit_ad = 0;
        AttackDefendSecondRound();
     }
-    
-    if ( timelimit && g_globalvars.time >= timelimit )
-        NextLevel();
-
-    if ( fraglimit && self->s.v.frags >= fraglimit )
-        NextLevel();
 }
 
 //============================================================================

@@ -47,6 +47,7 @@ static const set_bits_t sv_settings_bits[] = {
   { "SG New Rockets", "sg_rfire", "", svsb_sg_rfire        , true  },
   { "Pyro flame walls", "pyrotype", "", svsb_pyrotype        , false  },
   { "Prematch ready mode", "prematch_readymode", "", svsb_prematch_readymode        , false  },
+  { "Prematch godmode", "prematch_godmode", "", svsb_prematch_godmode        , false  },
   { "Pick-up game mode", "pugmode", "", svsb_pugmode        , false  },
   { "Attack defend mode", "admode", "", svsb_admode        , false  },
   { NULL, },

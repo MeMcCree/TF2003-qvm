@@ -303,23 +303,29 @@ void MatchTimer( qboolean force )
     lasttime = g_globalvars.time;
     if ( tf_data.cb_prematch_time > g_globalvars.time )
     {//prematch
-        localcmd("serverinfo status Countdown\n" );
-/*          time_left = ceil(tf_data.cb_prematch_time - g_globalvars.time+0.5);
-        if( time_left > 60 )
-            localcmd("serverinfo status \"PM %d min left\"\n", time_left / 60);
-        else
-            localcmd("serverinfo status \"PM %d sec left\"\n", time_left );
-*/          
+        localcmd("serverinfo status Countdown\n" );      
         return;
     }
+
+    if (timelimit_ad) {
+        time_left = ceil(timelimit_ad - g_globalvars.time + 0.5);
+        if (time_left / 60.0 < tfset_roundtime) {
+            return;
+        }
+        localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
+        return;
+    }
+
     if( !timelimit )
     {
         localcmd("serverinfo status \"no timelimit\"\n");
         return;
     }
+
     if( g_globalvars.time < timelimit )
     {
         time_left = ceil( timelimit - g_globalvars.time +0.5);
+        G_conprintf("%d\n", time_left);
         if( time_left > 60 )
             localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
         else
@@ -440,6 +446,8 @@ void AttackDefendSecondRound() {
             G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
         }
 
+        stuffcmd(self, "play items/protect.wav\n");
+
         TeamFortress_RemoveTimers(  );
         for (gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" ));) {
             if (gren->s.v.owner == EDICT_TO_PROG(self))
@@ -472,7 +480,7 @@ void AttackDefendSecondRound() {
     if (ent) {
         owner = PROG_TO_EDICT(ent->s.v.owner);
         if(owner != world) {
-            tfgoalitem_RemoveFromPlayer(ent, owner, 1);
+            tfgoalitem_RemoveFromPlayer(ent, owner, 0);
         }
         oldself = self;
         self = ent;
@@ -485,7 +493,7 @@ void AttackDefendSecondRound() {
     if (ent) {
         owner = PROG_TO_EDICT(ent->s.v.owner);
         if(owner != world) {
-            tfgoalitem_RemoveFromPlayer(ent, owner, 1);
+            tfgoalitem_RemoveFromPlayer(ent, owner, 0);
         }
         oldself = self;
         self = ent;
@@ -561,6 +569,7 @@ void ChangeReadyState(int state) {
                 G_conprintf("%f %f %f", (float)timelimit, (float)timelimit_ad, g_globalvars.time);
             } else {
                 timelimit = g_globalvars.time + tfset_roundtime * 60.0 + 10;
+                timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
                 trap_cvar_set_float("timelimit", (float)timelimit / 60.0f);
             }
             tf_data.cb_prematch_time = g_globalvars.time + 10;
