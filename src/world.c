@@ -357,7 +357,7 @@ void SP_worldspawn(  )
 
 }
 
-int     timelimit, timelimit_ad, fraglimit, teamplay, deathmatch, framecount, coop;
+int     timelimit, timelimit_ad, ad_roundnum, fraglimit, teamplay, deathmatch, framecount, coop;
 static  float old_time = 0;
 
 void MatchTimer( qboolean );

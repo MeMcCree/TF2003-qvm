@@ -513,6 +513,12 @@ void   TF_FinalizeSettings( )
         tfset_flagoff( game_locked );
     }
 
+    ent = spawn();
+    ent->s.v.classname = "roundtimer";
+    ent->s.v.think = (func_t)RoundTimerThink;
+    ent->s.v.nextthink = g_globalvars.time;
+    ent->heat = 0;
+
     fvar = tfset_prematch_time; //GetSVInfokeyFloat( "pm", "prematch", 0 );
     if( fvar < 0 ) fvar = 0;
 

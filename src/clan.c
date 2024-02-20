@@ -117,6 +117,12 @@ void PreMatch_Think(  )
         self = oldself;
     }
 
+    te = trap_find(world, FOFS(s.v.classname), "roundtimer");
+    if (te) {
+        te->s.v.nextthink = g_globalvars.time;
+        te->heat = 0;
+    }
+
     dremove(self);
 }
 
@@ -309,10 +315,15 @@ void MatchTimer( qboolean force )
 
     if (timelimit_ad) {
         time_left = ceil(timelimit_ad - g_globalvars.time + 0.5);
-        if (time_left / 60.0 < tfset_roundtime) {
+        /*if (time_left / 60.0 < tfset_roundtime) {
             return;
         }
-        localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
+        localcmd("serverinfo status \"%d min left\"\n", time_left / 60);*/
+        if (time_left > 60) {
+            localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
+        } else {
+            localcmd("serverinfo status \"%d sec left\"\n", time_left);
+        }
         return;
     }
 
@@ -325,7 +336,6 @@ void MatchTimer( qboolean force )
     if( g_globalvars.time < timelimit )
     {
         time_left = ceil( timelimit - g_globalvars.time +0.5);
-        G_conprintf("%d\n", time_left);
         if( time_left > 60 )
             localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
         else
@@ -419,7 +429,7 @@ void PreMatchReady_Think() {
 void AttackDefendSecondRound() {
     gedict_t* ent, *oldself, *owner, *te, *gren, *Goal, *olderself;
 
-    tfset_flagoff(admode);
+    ad_roundnum++;
 
     ent = spawn();
     ent->s.v.classname = "prematch";
@@ -501,13 +511,17 @@ void AttackDefendSecondRound() {
         self = oldself;
     }
 
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "ammobox"));) {
+        dremove(te);
+    }
+
     for (te = world; (te = trap_find(te, FOFS(s.v.classname), "func_button"));) {
         G_conprintf("button");
         te->s.v.think = 0;
         oldself = self;
         self = te;
         button_return();
-        G_conprintf("%s\n%s\n%s", self->s.v.target, self->s.v.message, self->killtarget);
+        // G_conprintf("%s\n%s\n%s", self->s.v.target, self->s.v.message, self->killtarget);
         
         if (self->s.v.target) {
             for (ent = world; (ent = trap_find(ent, FOFS(s.v.targetname), self->s.v.target));) {
@@ -524,8 +538,31 @@ void AttackDefendSecondRound() {
     }
 }
 
+void RoundTimerThink() {
+    gedict_t* te;
+    int minutes, seconds;
+
+    if (tf_data.cb_prematch_time > g_globalvars.time) {
+        self->heat = 0;
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+            stuffcmd(te, "set roundtimer \"00:00\";\n");
+        }
+        self->s.v.nextthink = g_globalvars.time + 60;
+        return;
+    }
+
+    minutes = (int)self->heat / 60;
+    seconds = (int)self->heat % 60;
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        stuffcmd(te, "set roundtimer \"%d%d:%d%d\";\n", minutes / 10, minutes % 10, seconds / 10, seconds % 10);
+    }
+
+    self->heat++;
+    self->s.v.nextthink = g_globalvars.time + 1;
+}
+
 void ChangeReadyState(int state) {
-    gedict_t* te, *prematch;
+    gedict_t* te, *prematch, *timer;
     int maxclients, readied_up;
 
     if (!tfset(prematch_readymode)) {
@@ -561,17 +598,17 @@ void ChangeReadyState(int state) {
             prematch->heat = 1;
             prematch = world;
             prematch = trap_find(prematch, FOFS(s.v.classname), "prematch_ready");
-            if (prematch != world) {
+            if (prematch) {
                 dremove(prematch);
             }
-            if (tfset(admode)) {
+            if (tfset(admode) && ad_roundnum == 0) {
                 timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
-                G_conprintf("%f %f %f", (float)timelimit, (float)timelimit_ad, g_globalvars.time);
             } else {
                 timelimit = g_globalvars.time + tfset_roundtime * 60.0 + 10;
                 timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
                 trap_cvar_set_float("timelimit", (float)timelimit / 60.0f);
             }
+
             tf_data.cb_prematch_time = g_globalvars.time + 10;
         }
     }
