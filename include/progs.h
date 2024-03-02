@@ -157,6 +157,7 @@ typedef struct gedict_s {
 	int 		can_give_goal;
 	int             tfstate;
 	struct gedict_s *linked_list, *observer_list;
+	struct gedict_s* primed_grenade;
 
 	int             maxammo_shells;
 	int             maxammo_nails;
@@ -310,6 +311,7 @@ typedef struct gedict_s {
 	int             internal_settings_bits;
 	int             take_sshot;
 	int 		ignoremapflaginfo;
+	int 		useprimetothrow;
 //player settings end
 	int             tf_id;
 	int             teamkills;

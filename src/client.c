@@ -983,6 +983,7 @@ void TF_SpawnPlayer( gedict_t * self )
     SetVector( self->s.v.view_ofs, 0, 0, 22 );
     SetVector( self->s.v.velocity, 0, 0, 0 );
 
+    self->primed_grenade = world;
     TeamFortress_PrintClassName( self, self->playerclass, self->tfstate & TFSTATE_RANDOMPC );
     TeamFortress_SetEquipment();
     TeamFortress_SetHealth();
