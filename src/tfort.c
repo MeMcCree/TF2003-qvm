@@ -1202,14 +1202,17 @@ void TeamFortress_GrenadePrimed(  )
 
 void TeamFortress_ThrowGrenade(  )
 {
-	gedict_t *te;
+	gedict_t *oldself;
 
 	if ( !( self->tfstate & TFSTATE_GRENPRIMED ) )
 		return;
 	self->tfstate |= TFSTATE_GRENTHROWING;
 	
 	if (self->primed_grenade != world && self->primed_grenade->respawn_time <= g_globalvars.time) {
-		self->primed_grenade->s.v.nextthink = g_globalvars.time;
+		oldself = self;
+		self = oldself->primed_grenade;
+		TeamFortress_GrenadePrimed();
+		self = oldself;
 	}
 	/*for ( te = world ; ( te = trap_find( te, FOFS( s.v.classname ), "primer" ) ) ; )
 	{
