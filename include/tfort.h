@@ -110,6 +110,7 @@ void    CTF_FlagCheck(  );
 void    BirthdayTimer(  );
 void    CeaseFire_think(  );
 void    PreMatch_Think(  );
+void    PreMatchReady_Think(  );
 void    Admin_CountPlayers(  );
 void    Admin_CycleKick(  );
 void    Admin_DoKick(  );

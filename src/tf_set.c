@@ -46,6 +46,10 @@ static const set_bits_t sv_settings_bits[] = {
   { "SG New Find", "sg_newfind", "", svsb_sg_newfind        , true  },
   { "SG New Rockets", "sg_rfire", "", svsb_sg_rfire        , true  },
   { "Pyro flame walls", "pyrotype", "", svsb_pyrotype        , false  },
+  { "Prematch ready mode", "prematch_readymode", "", svsb_prematch_readymode        , false  },
+  { "Prematch godmode", "prematch_godmode", "", svsb_prematch_godmode        , false  },
+  { "Pick-up game mode", "pugmode", "", svsb_pugmode        , false  },
+  { "Attack defend mode", "admode", "", svsb_admode        , false  },
   { NULL, },
 };
 static const set_bits_t toggleflags_bits[] = {
@@ -153,6 +157,7 @@ set_item_t tf_settings[] = {
 /*30*/    {"Limit engineer","cr_en", "cr_engineer", TFS_INT, 0, NULL, NULL, "0" },
 /*31*/    {"Limit random",  "cr_ra", "cr_random", TFS_INT, 0, NULL, NULL, "0" },
 /*32*/    {"Flag drop mode",  "fl_dr_md", "fl_drop_mode", TFS_INT_SET, 0, NULL, set_flag_drop_mode, "0" },
+/*33*/    {"Round time",  "roundtime", "", TFS_FLOAT, 0, NULL, NULL, "0" },
 /*  */    { NULL } 
 };
 
@@ -508,6 +513,12 @@ void   TF_FinalizeSettings( )
         tfset_flagoff( game_locked );
     }
 
+    ent = spawn();
+    ent->s.v.classname = "roundtimer";
+    ent->s.v.think = (func_t)RoundTimerThink;
+    ent->s.v.nextthink = g_globalvars.time;
+    ent->heat = 0;
+
     fvar = tfset_prematch_time; //GetSVInfokeyFloat( "pm", "prematch", 0 );
     if( fvar < 0 ) fvar = 0;
 
@@ -516,8 +527,17 @@ void   TF_FinalizeSettings( )
     {
         tf_data.cb_prematch_time += 5;
         ent = spawn();
+        ent->s.v.classname = "prematch";
         ent->s.v.think = ( func_t ) PreMatch_Think;
         ent->s.v.nextthink = g_globalvars.time + 5;
+        ent->heat = 0;
+
+        if (tfset(prematch_readymode)) {
+            ent = spawn();
+            ent->s.v.classname = "prematch_ready";
+            ent->s.v.think = (func_t)PreMatchReady_Think;
+            ent->s.v.nextthink = g_globalvars.time + 1;
+        }
 
         tf_data.cb_ceasefire_time = tfset_ceasefire_time;//GetSVInfokeyFloat( "cft", "ceasefire_time", 0 );
 
@@ -554,7 +574,7 @@ void   TF_FinalizeSettings( )
     {
         timelimit += tf_data.cb_prematch_time;
 
-        trap_cvar_set_float( "timelimit", timelimit );
+        trap_cvar_set_float( "timelimit", timelimit / 60 );
     }
 
     if( tfset_autoteam_time > 0 )

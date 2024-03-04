@@ -106,6 +106,7 @@ void W_Precache() {
   trap_precache_sound("weapons/dartgun.wav"); // Spy's dart gun
   trap_precache_sound("count.wav");           // grenade prime sound
   trap_precache_sound("zap1.wav");
+  trap_precache_sound("buttons/switch04.wav");
 
   trap_precache_model("progs/v_flame.mdl");
   trap_precache_model("progs/v_tgun.mdl");
@@ -250,7 +251,7 @@ void W_FireSpanner() {
                 trace_ent->s.v.armorvalue = trace_ent->s.v.armorvalue + healam * 4;
                 if (trace_ent->s.v.armorvalue > trace_ent->maxarmor)
                   trace_ent->s.v.armorvalue = trace_ent->maxarmor;
-                if (!tg_data.unlimit_ammo)
+                if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
                   self->s.v.ammo_cells = self->s.v.ammo_cells - healam;
                 sound(trace_ent, CHAN_WEAPON, "items/r_item1.wav", 1, ATTN_NORM);
                 TempEffectCount(org, TE_GUNSHOT, 3);
@@ -732,7 +733,7 @@ void W_FireShotgun() {
 
   sound(self, CHAN_WEAPON, "weapons/guncock.wav", 1, ATTN_NORM);
   KickPlayer(-2, self);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_shells);
   aim(dir);
   tf_data.deathmsg = DMSG_SHOTGUN;
@@ -753,7 +754,7 @@ void W_FireSuperShotgun() {
   }
   sound(self, CHAN_WEAPON, "weapons/shotgn2.wav", 1, ATTN_NORM);
   KickPlayer(-4, self);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = self->s.v.ammo_shells = self->s.v.ammo_shells - 2;
   aim(dir);
   tf_data.deathmsg = DMSG_SSHOTGUN;
@@ -804,7 +805,7 @@ void W_FireSniperRifle() {
 
   sound(self, 1, "weapons/sniper.wav", 1, 1);
   KickPlayer(-2, self);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = (self->s.v.ammo_shells -= tfset_snip_ammo);
   trap_makevectors(self->s.v.v_angle);
   VectorCopy(g_globalvars.v_forward, dir);
@@ -884,7 +885,7 @@ void W_FireAutoRifle() {
 
   sound(self, 1, "weapons/sniper.wav", 1, 1);
   KickPlayer(-1, self);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_shells);
   trap_makevectors(self->s.v.v_angle);
   VectorCopy(g_globalvars.v_forward, dir);
@@ -906,7 +907,7 @@ void W_FireAssaultCannon() {
 #endif
   KickPlayer(-4, self);
 
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_shells);
 
   trap_makevectors(self->s.v.v_angle);
@@ -962,7 +963,7 @@ W_FireRocket
 ================
 */
 void W_FireRocket() {
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_rockets);
   sound(self, CHAN_WEAPON, "weapons/sgun1.wav", 1, ATTN_NORM);
   KickPlayer(-2, self);
@@ -1260,7 +1261,7 @@ void W_FireLightning() {
     self->t_width = g_globalvars.time + 0.6;
   }
   KickPlayer(-2, self);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_cells);
 
   VectorCopy(self->s.v.origin, org); // org = self->s.v.origin + '0 0 16';
@@ -1395,7 +1396,7 @@ void W_FireGrenade() {
   int num_pipes;
   int num_team_pipes;
 
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = --(self->s.v.ammo_rockets);
 
   sound(self, 1, "weapons/grenade.wav", 1, 1);
@@ -1501,7 +1502,7 @@ void W_FireSuperSpikes() {
   vec3_t dir, tmp;
 
   sound(self, CHAN_WEAPON, "weapons/spike2.wav", 1, ATTN_NORM);
-  if (!tg_data.unlimit_ammo)
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
     self->s.v.currentammo = self->s.v.ammo_nails = self->s.v.ammo_nails - 4;
   aim(dir); // dir = aim (self, 1000);
 
@@ -1533,10 +1534,10 @@ void W_FireSpikes(float ox) {
   }
   sound(self, 1, "weapons/rocket1i.wav", 1, 1);
   if (self->s.v.ammo_nails == 1) {
-    if (!tg_data.unlimit_ammo)
+    if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
       self->s.v.currentammo = self->s.v.ammo_nails = self->s.v.ammo_nails - 1;
   } else {
-    if (!tg_data.unlimit_ammo)
+    if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
       self->s.v.currentammo = self->s.v.ammo_nails = self->s.v.ammo_nails - 2;
   }
   aim(dir); // dir = aim (self, 1000);
@@ -1938,7 +1939,7 @@ void W_Attack() {
     if (self->s.v.ammo_cells < 4)
       G_sprint(self, 1, "Insufficient cells to power up the Assault Cannon.\n");
     else {
-      if (!tg_data.unlimit_ammo)
+      if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
         self->s.v.ammo_cells -= 4;
 
       self->heat = 1;
@@ -2534,6 +2535,10 @@ void PreMatchImpulses() {
     break;
   case TF_DISPLAYLOCATION:
     display_location();
+    break;
+  case 200:
+  case 201:
+    ChangeReadyState((int)self->s.v.impulse - 200);
     break;
   }
 }

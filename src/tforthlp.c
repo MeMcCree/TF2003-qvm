@@ -134,6 +134,8 @@ void TeamFortress_MOTD(  )
         TeamFortress_Alias( "flaginfo", TF_FLAG_INFO, 0 );
         TeamFortress_Alias( "maphelp", TF_HELP_MAP, 0 );
         TeamFortress_Alias( "showids", TF_SHOWIDS, 0 );
+        TeamFortress_Alias( "unready", TF_UNREADY, 0 );
+        TeamFortress_Alias( "ready", TF_READY, 0 );
         stuffcmd( self, "bind 9 \"impulse 9\"\n" );
         stuffcmd( self, "bind 0 \"impulse 10\"\n" );
         return;

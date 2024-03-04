@@ -928,8 +928,12 @@ void TeamFortress_PrimeGrenade(  )
 
 	gedict_t *tGrenade;
 
-	if ( ( self->tfstate & TFSTATE_GRENPRIMED ) || ( self->tfstate & TFSTATE_GRENTHROWING ) )
+	if ( ( self->tfstate & TFSTATE_GRENPRIMED ) || ( self->tfstate & TFSTATE_GRENTHROWING ) ) {
+		if (self->useprimetothrow) {
+			TeamFortress_ThrowGrenade();
+		}
 		return;
+	}
 	if ( self->s.v.impulse == TF_GRENADE_1 )
 	{
 
@@ -992,6 +996,7 @@ void TeamFortress_PrimeGrenade(  )
 	else
 		tGrenade->heat = g_globalvars.time + 3 + 0.8;
 	tGrenade->s.v.think = ( func_t ) TeamFortress_GrenadePrimed;
+	self->primed_grenade = tGrenade;
 }
 
 static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
@@ -999,6 +1004,7 @@ static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
 	qboolean printthrowmsg = true;
     gedict_t* newmis;
 
+	user->primed_grenade = world;
 	newmis = spawn(  );
 	g_globalvars.newmis = EDICT_TO_PROG( newmis );
 	newmis->s.v.owner = EDICT_TO_PROG( user );
@@ -1147,7 +1153,7 @@ static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
             break;
     }
 	if( isthrow && printthrowmsg )
-	        G_sprint( user, 0, "%s thrown.\n", GrenadePrimeName[type] );
+	        G_sprint( user, 2, "%s thrown.\n", GrenadePrimeName[type] );
     return newmis;
 }
 
@@ -1208,12 +1214,19 @@ void TeamFortress_GrenadePrimed(  )
 
 void TeamFortress_ThrowGrenade(  )
 {
-	gedict_t *te;
+	gedict_t *oldself;
 
 	if ( !( self->tfstate & TFSTATE_GRENPRIMED ) )
 		return;
 	self->tfstate |= TFSTATE_GRENTHROWING;
-	for ( te = world ; ( te = trap_find( te, FOFS( s.v.classname ), "primer" ) ) ; )
+	
+	if (self->primed_grenade != world && self->primed_grenade->respawn_time <= g_globalvars.time) {
+		oldself = self;
+		self = oldself->primed_grenade;
+		TeamFortress_GrenadePrimed();
+		self = oldself;
+	}
+	/*for ( te = world ; ( te = trap_find( te, FOFS( s.v.classname ), "primer" ) ) ; )
 	{
 		if ( te->s.v.owner == EDICT_TO_PROG( self ) )
 			if ( te->respawn_time <= g_globalvars.time )
@@ -1221,7 +1234,7 @@ void TeamFortress_ThrowGrenade(  )
 				te->s.v.nextthink = g_globalvars.time;
 			}
 //              else te->s.v.nextthink=te.respawn_time;
-	}
+	}*/
 
 }
 

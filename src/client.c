@@ -377,8 +377,22 @@ void IntermissionThink()
 void execute_changelevel()
 {
     gedict_t *pos;
+    fileHandle_t handle = 0;
+    char results_string[128];
+    int cnt;
 
-    G_conprintf( "execute_changelevel()\n" );
+    if (tfset(pugmode)) {
+        cnt = trap_FS_OpenFile("pickupbot/pickupbot.txt", &handle, FS_WRITE_BIN);
+        if (cnt >= 0) {
+            _snprintf(results_string, sizeof(results_string), "matchend %d %d", teamscores[1], teamscores[2]);
+            trap_FS_WriteFile(results_string, strlen(results_string), handle);
+            trap_FS_CloseFile(handle);    
+        } else {
+            G_conprintf("file not found\n");
+        }
+
+        G_conprintf( "execute_changelevel()\n" );
+    }
     StopDemoRecord();
 
     intermission_running = 1;
@@ -969,6 +983,7 @@ void TF_SpawnPlayer( gedict_t * self )
     SetVector( self->s.v.view_ofs, 0, 0, 22 );
     SetVector( self->s.v.velocity, 0, 0, 0 );
 
+    self->primed_grenade = world;
     TeamFortress_PrintClassName( self, self->playerclass, self->tfstate & TFSTATE_RANDOMPC );
     TeamFortress_SetEquipment();
     TeamFortress_SetHealth();
@@ -1042,11 +1057,19 @@ void NextLevel()
 
 void CheckRules()
 {
-    if ( timelimit && g_globalvars.time >= timelimit )
+    
+    if ( timelimit && g_globalvars.time >= timelimit ) {
         NextLevel();
+        return;
+    }
 
     if ( fraglimit && self->s.v.frags >= fraglimit )
         NextLevel();
+    
+    if (timelimit_ad && g_globalvars.time >= timelimit_ad) {
+       timelimit_ad = 0;
+       AttackDefendSecondRound();
+    }
 }
 
 //============================================================================

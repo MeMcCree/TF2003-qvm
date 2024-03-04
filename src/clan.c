@@ -26,129 +26,140 @@ extern int last_id;
 void MatchTimer( qboolean force );
 void PreMatch_Think(  )
 {
-	int     time_left;
-	gedict_t *te;
-	gedict_t *oldself;
-	gedict_t *gren;
+    int     time_left;
+    gedict_t *te;
+    gedict_t *oldself;
+    gedict_t *gren;
 
-	time_left = ceil( tf_data.cb_prematch_time - g_globalvars.time );
-	if ( time_left > 60 )
-	{
-		G_bprint( 2, "%d minutes left till Match begins.\n", time_left / 60 );
-		if ( time_left < 120 )
-			self->s.v.nextthink = g_globalvars.time + time_left - 60;
-		else
-			self->s.v.nextthink = g_globalvars.time + 60.0;
-		return;
-	}
-	if ( time_left >= 59 )
-	{
-		G_bprint( 2, "1 minute left till Match begins.\n" );
-		self->s.v.nextthink = g_globalvars.time + 30.0;
-		return;
-	}
-	if ( time_left >= 29 )
-	{
-		G_bprint( 2, "30 seconds left till Match begins.\n" );
-		self->s.v.nextthink = g_globalvars.time + 20.0;
-		return;
-	}
-	if ( time_left > 1 )
-	{
-		G_bprint( 2, "%d seconds.\n", time_left );
-		self->s.v.nextthink = g_globalvars.time + 1.0;
-		return;
-	}
-	//if ( time_left > 0 )
-	if( tf_data.cb_prematch_time > g_globalvars.time )
-	{
-		G_bprint( 2, "1 second.\n" );
-		self->s.v.nextthink = g_globalvars.time + 1.0;
-		return;
-	}
-/*	if( tf_data.cb_prematch_time > g_globalvars.time )
-	{
-	        self->s.v.nextthink = g_globalvars.time + 0.5;
-	        return;
-	}*/
-	G_bprint( 2, "MATCH BEGINS NOW\n" );
-	MatchTimer( true );
-	if ( tfset(game_locked) )
-		G_bprint( 2, "GAME IS NOW LOCKED\n" );
-	teamscores[0] = teamscores[1] = teamscores[2] = teamscores[3] = teamscores[4] = 0;
-	teamfrags[0] = teamfrags[1] = teamfrags[2] = teamfrags[3] = teamfrags[4] = 0;
+    time_left = ceil( tf_data.cb_prematch_time - g_globalvars.time );
+    if ( time_left > 60 )
+    {
+        G_bprint( 2, "%d minutes left till Match begins.\n", time_left / 60 );
+        if ( time_left < 120 )
+            self->s.v.nextthink = g_globalvars.time + time_left - 60;
+        else
+            self->s.v.nextthink = g_globalvars.time + 60.0;
+        return;
+    }
+    if ( time_left >= 59 )
+    {
+        G_bprint( 2, "1 minute left till Match begins.\n" );
+        self->s.v.nextthink = g_globalvars.time + 30.0;
+        return;
+    }
+    if ( time_left >= 29 )
+    {
+        G_bprint( 2, "30 seconds left till Match begins.\n" );
+        self->s.v.nextthink = g_globalvars.time + 20.0;
+        return;
+    }
+    if ( time_left > 1 )
+    {
+        UpdateCountdown(time_left);
+        G_bprint( 2, "%d seconds.\n", time_left );
+        self->s.v.nextthink = g_globalvars.time + 1.0;
+        return;
+    }
+    //if ( time_left > 0 )
+    if( tf_data.cb_prematch_time > g_globalvars.time )
+    {
+        UpdateCountdown(time_left);
+        G_bprint( 2, "1 second.\n" );
+        self->s.v.nextthink = g_globalvars.time + 1.0;
+        return;
+    }
+/*  if( tf_data.cb_prematch_time > g_globalvars.time )
+    {
+        self->s.v.nextthink = g_globalvars.time + 0.5;
+        return;
+    }*/
+    G_bprint( 2, "MATCH BEGINS NOW\n" );
+    MatchTimer( true );
+    if ( tfset(game_locked) )
+        G_bprint( 2, "GAME IS NOW LOCKED\n" );
+    // Disabled for ad mode
+    //teamscores[0] = teamscores[1] = teamscores[2] = teamscores[3] = teamscores[4] = 0;
+    //teamfrags[0] = teamfrags[1] = teamfrags[2] = teamfrags[3] = teamfrags[4] = 0;
 //paranoid ?????????
-	if( tf_data.cease_fire )	
-	{
-		G_bprint(2,"!!!BUG BUG BUG!!! tf_data.cease_fire != 0\n");
-		tf_data.cease_fire = 0;
-	}
-	for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-	{
-		oldself = self;
-		self = te;
-		if ( !self->tf_id )
-		{
-			last_id = last_id + 20 + g_random(  ) * 10;
-			self->tf_id = g_random(  ) * 10 + last_id;
-			stuffcmd( self, "setinfo tf_id %d\n", self->tf_id );
-			G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
-		}
-		if ( self->hook_out )
-		{
-			Reset_Grapple( self->hook );
-			Attack_Finished( 0.75 );
-			self->hook_out = 1;
-		}
-		TeamFortress_RemoveTimers(  );
-		self->s.v.frags = 0;
-		self->real_frags = 0;
-		for ( gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" )); )
-		{
-			if ( gren->s.v.owner == EDICT_TO_PROG( self ) )
-				gren->s.v.nextthink = g_globalvars.time + 0.1;
-		}
-		
-		TF_T_Damage( self, world, world, self->s.v.health + 1, TF_TD_IGNOREARMOUR, 0 );
+    if( tf_data.cease_fire )    
+    {
+        G_bprint(2,"!!!BUG BUG BUG!!! tf_data.cease_fire != 0\n");
+        tf_data.cease_fire = 0;
+    }
+    for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+    {
+        oldself = self;
+        self = te;
+        if ( !self->tf_id )
+        {
+            last_id = last_id + 20 + g_random(  ) * 10;
+            self->tf_id = g_random(  ) * 10 + last_id;
+            stuffcmd( self, "setinfo tf_id %d\n", self->tf_id );
+            G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
+        }
+        if ( self->hook_out )
+        {
+            Reset_Grapple( self->hook );
+            Attack_Finished( 0.75 );
+            self->hook_out = 1;
+        }
+        TeamFortress_RemoveTimers(  );
+        self->s.v.frags = 0;
+        self->real_frags = 0;
+        for ( gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" )); )
+        {
+            if ( gren->s.v.owner == EDICT_TO_PROG( self ) )
+                gren->s.v.nextthink = g_globalvars.time + 0.1;
+        }
+        
+        TF_T_Damage( self, world, world, self->s.v.health + 1, TF_TD_IGNOREARMOUR, 0 );
 
-		self = oldself;
-	}
+        self = oldself;
+    }
+
+    te = trap_find(world, FOFS(s.v.classname), "roundtimer");
+    if (te) {
+        te->s.v.nextthink = g_globalvars.time;
+        te->heat = 0;
+    }
+
+    dremove(self);
 }
 
 void TeamFortress_ShowIDs(  )
 {
-	gedict_t *te;
-	float   got_one;
+    gedict_t *te;
+    float   got_one;
 
-	if ( !self->team_no )
-	{
-		G_sprint( self, 2, "You aren't in a team.\n" );
-		return;
-	}
-	got_one = 0;
-	G_sprint( self, 2, "Existing Team Member IDs:\n" );
-	for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-	{
-		if ( te->team_no == self->team_no )
-		{
-			got_one = 1;
-			G_sprint( self, 2, "%s : %d\n", te->s.v.netname, te->tf_id );
-		}
-	}
-	if ( !got_one )
-		G_sprint( self, 2, "NONE\n" );
-	got_one = 0;
-	G_sprint( self, 2, "Disconnected Team Member IDs:\n" );
-	for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "ghost" )); )
-	{
-		if ( te->team_no == self->team_no )
-		{
-			got_one = 1;
-			G_sprint( self, 2, "%d\n", te->tf_id );
-		}
-	}
-	if ( !got_one )
-		G_sprint( self, 2, "NONE\n" );
+    if ( !self->team_no )
+    {
+        G_sprint( self, 2, "You aren't in a team.\n" );
+        return;
+    }
+    got_one = 0;
+    G_sprint( self, 2, "Existing Team Member IDs:\n" );
+    for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+    {
+        if ( te->team_no == self->team_no )
+        {
+            got_one = 1;
+            G_sprint( self, 2, "%s : %d\n", te->s.v.netname, te->tf_id );
+        }
+    }
+    if ( !got_one )
+        G_sprint( self, 2, "NONE\n" );
+    got_one = 0;
+    G_sprint( self, 2, "Disconnected Team Member IDs:\n" );
+    for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "ghost" )); )
+    {
+        if ( te->team_no == self->team_no )
+        {
+            got_one = 1;
+            G_sprint( self, 2, "%d\n", te->tf_id );
+        }
+    }
+    if ( !got_one )
+        G_sprint( self, 2, "NONE\n" );
 
 }
 
@@ -157,188 +168,448 @@ int _isDraw ( int no_teams, int teamfrags_q )
     int i;
     for( i = 2; i <= no_teams; i++ )
     {
-        if( ( teamscores[1] != teamscores[i] && teamfrags_q ) 
-             || ( teamfrags[1] != teamfrags[i] && !teamfrags_q ))
-            return 0;
+    if( ( teamscores[1] != teamscores[i] && teamfrags_q ) 
+         || ( teamfrags[1] != teamfrags[i] && !teamfrags_q ))
+        return 0;
     }
     return 1;
 }
 
 void DumpClanScores(  )
 {
-	int     winners, no_teams = 0, printed = 0, ti = 0, teamfrags_q;
-	int     t_pl[5], t_unacc[5], i;
-	gedict_t *te;
-	const char   *st;
+    int     winners, no_teams = 0, printed = 0, ti = 0, teamfrags_q;
+    int     t_pl[5], t_unacc[5], i;
+    gedict_t *te;
+    const char   *st;
     char st2[10];
 
-	for ( i = 1; i <= 4; i++ )
-	{
-		if ( (t_pl[i] = TeamFortress_TeamGetNoPlayers( i ) ))
-			no_teams++;
-		t_unacc[i] = 0;
-	}
-
-	if ( no_teams < 2 )
-		return;
-	teamfrags_q = tfset_toggleflags & ( TFLAG_TEAMFRAGS | TFLAG_FULLTEAMSCORE );
-	for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-	{
-		if ( te->team_no <= 0 || te->team_no > 4 )
-			continue;
-		t_unacc[te->team_no] += te->real_frags;
-	}
-	for ( i = 1; i <= 4; i++ )
-		t_unacc[i] = teamfrags[i] - t_unacc[i];
-
-	winners = TeamFortress_TeamGetWinner(  );
-	G_bprint( 2, "\n\n=------= MATCH RESULTS =------=\n" );
-
-
-	if ( _isDraw( no_teams, teamfrags_q ))
-		G_bprint( 2, " DRAW " );
-	else
+    for ( i = 1; i <= 4; i++ )
     {
-        G_bprint( 2, "%s defeated ", GetTeamName( winners ) );
-        for ( i = 1; i < 4; i++ )
+        if ( (t_pl[i] = TeamFortress_TeamGetNoPlayers( i ) ))
+            no_teams++;
+        t_unacc[i] = 0;
+    }
+
+    if ( no_teams < 2 )
+        return;
+    teamfrags_q = tfset_toggleflags & ( TFLAG_TEAMFRAGS | TFLAG_FULLTEAMSCORE );
+    for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+    {
+        if ( te->team_no <= 0 || te->team_no > 4 )
+            continue;
+        t_unacc[te->team_no] += te->real_frags;
+    }
+    for ( i = 1; i <= 4; i++ )
+        t_unacc[i] = teamfrags[i] - t_unacc[i];
+
+    winners = TeamFortress_TeamGetWinner(  );
+    G_bprint( 2, "\n\n=------= MATCH RESULTS =------=\n" );
+
+
+    if ( _isDraw( no_teams, teamfrags_q ))
+        G_bprint( 2, " DRAW " );
+    else
+    {
+    G_bprint( 2, "%s defeated ", GetTeamName( winners ) );
+    for ( i = 1; i < 4; i++ )
+    {
+        if ( winners != i && t_pl[i] )
         {
-            if ( winners != i && t_pl[i] )
+        st = GetTeamName( i );
+        if ( !printed )
+            G_bprint( 2, "%s", st );
+        else if ( printed == no_teams )
+            G_bprint( 2, " and %s", st );
+        else
+            G_bprint( 2, ", %s", st );
+        printed++;
+
+        }
+    }
+    }
+    G_bprint( 2, "\n\n" );
+
+    GetSVInfokeyString( "dtf", "dont_tweak_frags", st2, sizeof( st2 ), "off" );
+    if ( strcmp( st2, "on" ) )
+    {
+        if ( teamfrags_q )
+        {
+            for ( i = 1; i <= 4; i++ )
             {
-                st = GetTeamName( i );
-                if ( !printed )
-                    G_bprint( 2, "%s", st );
-                else if ( printed == no_teams )
-                    G_bprint( 2, " and %s", st );
-                else
-                    G_bprint( 2, ", %s", st );
-                printed++;
+                if ( t_pl[i] <= 0 )
+                    continue;
+                printed = teamscores[i] / t_pl[i];
+                ti = teamscores[i] % t_pl[i];
+                for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+                {
+                    if ( te->team_no == i )
+                        te->s.v.frags = printed;
+                    if ( ti )
+                    {
+                        te->s.v.frags += 1;
+                        ti--;
+                    }
+                }
+            }
+        } else
+        {
+            for ( i = 1; i <= 4; i++ )
+            {
+                if ( !( t_pl[i] > 0 && t_unacc[i] > 0 ) )
+                    continue;
+                printed = t_unacc[i] / t_pl[i];
+                ti = t_unacc[i] % t_pl[i];
+                for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+                {
+                    if ( te->team_no == i )
+                    {
+                        te->s.v.frags += printed;
+                        if ( ti )
+                        {
+                            te->s.v.frags += 1;
+                            ti--;
+                        }
+                    }
+                }
 
             }
         }
     }
-	G_bprint( 2, "\n\n" );
+    for ( i = 1; i <= 4; i++ )
+    {
+        if ( t_pl[i] <= 0 )
+            continue;
+        G_bprint( 2, "\n=------= TEAM%d RESULTS =------=\n", i );
+        G_bprint( 2, "%d players.\n%d frags, %d unaccounted for.\n%d team score.\n\n",
+              TeamFortress_TeamGetNoPlayers( i ), teamfrags[i], t_unacc[i], teamscores[i] );
+    }
 
-	GetSVInfokeyString( "dtf", "dont_tweak_frags", st2, sizeof( st2 ), "off" );
-	if ( strcmp( st2, "on" ) )
-	{
-		if ( teamfrags_q )
-		{
-			for ( i = 1; i <= 4; i++ )
-			{
-				if ( t_pl[i] <= 0 )
-					continue;
-				printed = teamscores[i] / t_pl[i];
-				ti = teamscores[i] % t_pl[i];
-				for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-				{
-					if ( te->team_no == i )
-						te->s.v.frags = printed;
-					if ( ti )
-					{
-						te->s.v.frags += 1;
-						ti--;
-					}
-				}
-			}
-		} else
-		{
-			for ( i = 1; i <= 4; i++ )
-			{
-				if ( !( t_pl[i] > 0 && t_unacc[i] > 0 ) )
-					continue;
-				printed = t_unacc[i] / t_pl[i];
-				ti = t_unacc[i] % t_pl[i];
-				for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-				{
-					if ( te->team_no == i )
-					{
-						te->s.v.frags += printed;
-						if ( ti )
-						{
-							te->s.v.frags += 1;
-							ti--;
-						}
-					}
-				}
-
-			}
-		}
-	}
-	for ( i = 1; i <= 4; i++ )
-	{
-		if ( t_pl[i] <= 0 )
-			continue;
-		G_bprint( 2, "\n=------= TEAM%d RESULTS =------=\n", i );
-		G_bprint( 2, "%d players.\n%d frags, %d unaccounted for.\n%d team score.\n\n",
-			  TeamFortress_TeamGetNoPlayers( i ), teamfrags[i], t_unacc[i], teamscores[i] );
-	}
-
-	for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
-	{
-		if ( te->settings_bits & TF_TAKE_SSHOT_MASK )
-		{
-			stuffcmd( te, "screenshot\n" );
-		}
-	}
-	MatchTimer( true );
+    for ( te = world; (te = trap_find( te, FOFS( s.v.classname ), "player" )); )
+    {
+        if ( te->settings_bits & TF_TAKE_SSHOT_MASK )
+        {
+            stuffcmd( te, "screenshot\n" );
+        }
+    }
+    MatchTimer( true );
 }
 
 void MatchTimer( qboolean force )
 {
-        static float lasttime = 0;
-        int     time_left;
+    static float lasttime = 0;
+    int     time_left;
 
-        if ( !( tfset_toggleflags & TFLAG_FIRSTENTRY ) )
-                return;
+    if ( !( tfset_toggleflags & TFLAG_FIRSTENTRY ) )
+        return;
 
-        if( !force && lasttime && ( ( g_globalvars.time - lasttime ) < 60 ))
-        {
-                return;
+    if( !force && lasttime && ( ( g_globalvars.time - lasttime ) < 60 ))
+    {
+        return;
+    }
+    lasttime = g_globalvars.time;
+    if ( tf_data.cb_prematch_time > g_globalvars.time )
+    {//prematch
+        localcmd("serverinfo status Countdown\n" );      
+        return;
+    }
+
+    if (timelimit_ad) {
+        time_left = ceil(timelimit_ad - g_globalvars.time + 0.5);
+        /*if (time_left / 60.0 < tfset_roundtime) {
+            return;
         }
-        lasttime = g_globalvars.time;
-	if ( tf_data.cb_prematch_time > g_globalvars.time )
-	{//prematch
-	        localcmd("serverinfo status Countdown\n" );
-/*	        time_left = ceil(tf_data.cb_prematch_time - g_globalvars.time+0.5);
-	        if( time_left > 60 )
-	                localcmd("serverinfo status \"PM %d min left\"\n", time_left / 60);
-	        else
-	                localcmd("serverinfo status \"PM %d sec left\"\n", time_left );
-*/	        
-		return;
-	}
-	if( !timelimit )
-	{
-	        localcmd("serverinfo status \"no timelimit\"\n");
-	        return;
-	}
-	if( g_globalvars.time < timelimit )
-	{
-	        time_left = ceil( timelimit - g_globalvars.time +0.5);
-	        if( time_left > 60 )
-	                localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
-	        else
-	                localcmd("serverinfo status \"%d sec left\"\n", time_left );
-	        return;
-	}
-	localcmd("serverinfo status Standby\n");
+        localcmd("serverinfo status \"%d min left\"\n", time_left / 60);*/
+        if (time_left > 60) {
+            localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
+        } else {
+            localcmd("serverinfo status \"%d sec left\"\n", time_left);
+        }
+        return;
+    }
+
+    if( !timelimit )
+    {
+        localcmd("serverinfo status \"no timelimit\"\n");
+        return;
+    }
+
+    if( g_globalvars.time < timelimit )
+    {
+        time_left = ceil( timelimit - g_globalvars.time +0.5);
+        if( time_left > 60 )
+            localcmd("serverinfo status \"%d min left\"\n", time_left / 60);
+        else
+            localcmd("serverinfo status \"%d sec left\"\n", time_left );
+        return;
+    }
+    localcmd("serverinfo status Standby\n");
 }
 
 void UpdateServerinfoScores()
 {
-        switch(number_of_teams)
-        {
-                case 2:
-                        localcmd("serverinfo score \"%d:%d\"\n", teamscores[1],teamscores[2]);
-                        break;
-                case 3:
-                        localcmd("serverinfo score \"%d:%d:%d\"\n", teamscores[1],teamscores[2],teamscores[3]);
-                        break;
-                case 4:
-                        localcmd("serverinfo score \"%d:%d:%d:%d\"\n", teamscores[1],teamscores[2],teamscores[3],teamscores[4]);
-                        break;
-                default:
-                        return;
+    switch(number_of_teams)
+    {
+        case 2:
+            localcmd("serverinfo score \"%d:%d\"\n", teamscores[1],teamscores[2]);
+            break;
+        case 3:
+            localcmd("serverinfo score \"%d:%d:%d\"\n", teamscores[1],teamscores[2],teamscores[3]);
+            break;
+        case 4:
+            localcmd("serverinfo score \"%d:%d:%d:%d\"\n", teamscores[1],teamscores[2],teamscores[3],teamscores[4]);
+            break;
+        default:
+            return;
+    }
+
+}
+
+void UpdateCountdown(int time_left) {
+    gedict_t* te;
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        CenterPrint(te, "Match begins in %d %s\n", time_left, (time_left != 1 ? "seconds" : "second"));
+        stuffcmd(te, "play buttons/switch04.wav\n");
+    }
+}
+
+char not_ready_str[] = {
+    (char)0x87, ' ', 'n', 'o', 't', ' ', '&', 'c', 'f', '2', '0', 'r', 'e', 'a', 'd', 'y', '&', 'r', '\n', 0
+};
+
+char ready_str[] = {
+    (char)0x86, ' ', 'r', 'e', 'a', 'd', 'y', ' ', ' ', ' ', ' ', '\n', '\0'
+};
+
+char padding_string[] = "                                ";
+
+void PreMatchReady_Think() {
+    gedict_t* te;
+    char   bstmp[512];
+    char   rstmp[512];
+    char   line[64];
+    int mxlen, oldlen;
+
+    bstmp[0] = '\0';
+    rstmp[0] = '\0';
+    line[0] = '\0';
+    if (tf_data.cb_prematch_time - g_globalvars.time) {
+        mxlen = 0;
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+            CenterPrint(te, "\n");
+            if (strlen(te->s.v.netname) > mxlen) {
+                mxlen = strlen(te->s.v.netname);
+            }
+        }
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+            CenterPrint(te, "\n");
+            _snprintf(line, sizeof(line), "%s", te->s.v.netname);
+            oldlen = strlen(line);
+            if (oldlen < mxlen) {
+                padding_string[mxlen - oldlen] = '\0';
+                strcat(line, padding_string);
+                padding_string[mxlen - oldlen] = ' ';
+            }
+            strcat(line, "    ");
+            strcat(line, (te->ready ? ready_str : not_ready_str));
+            if (te->team_no == 1) {
+                strcat(bstmp, line);
+            }
+            if (te->team_no == 2) {
+                strcat(rstmp, line);
+            }
+        }
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+            G_centerprint(te, "&c44fBlue&r\n\n%s\n&cf00Red&r\n\n%s\n\n%s", bstmp, rstmp, (te->ready ? "\n" : "&c888----------------&r\n\nType &cf20/ready&r to ready up\n"));
+            te->StatusRefreshTime = g_globalvars.time + 1.5;
+        }
+    }
+    self->s.v.nextthink = g_globalvars.time + 1;
+}
+
+void AttackDefendSecondRound() {
+    gedict_t* ent, *oldself, *owner, *te, *gren, *Goal, *olderself;
+
+    ad_roundnum++;
+
+    ent = spawn();
+    ent->s.v.classname = "prematch";
+    ent->s.v.think = ( func_t ) PreMatch_Think;
+    ent->s.v.nextthink = g_globalvars.time;
+    ent->heat = 0;
+
+    if (tfset(prematch_readymode)) {
+        ent = spawn();
+        ent->s.v.classname = "prematch_ready";
+        ent->s.v.think = (func_t)PreMatchReady_Think;
+        ent->s.v.nextthink = g_globalvars.time + 1;
+    }
+
+    tf_data.cb_prematch_time = g_globalvars.time + 6000;
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        oldself = self;
+        self = te;
+        if (!self->tf_id) {
+            last_id = last_id + 20 + g_random(  ) * 10;
+            self->tf_id = g_random(  ) * 10 + last_id;
+            stuffcmd( self, "setinfo tf_id %d\n", self->tf_id );
+            G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
         }
 
+        stuffcmd(self, "play items/protect.wav\n");
+
+        TeamFortress_RemoveTimers(  );
+        for (gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" ));) {
+            if (gren->s.v.owner == EDICT_TO_PROG(self))
+                gren->s.v.nextthink = g_globalvars.time + 0.1;
+        }
+        
+        TF_T_Damage(self, world, world, self->s.v.health + 1, TF_TD_IGNOREARMOUR, 0);
+
+        Engineer_RemoveBuildings(self);
+        ent = trap_find(world, FOFS(s.v.classname), "detpack");
+        while (ent) {
+            if (ent->real_owner == self) {
+                if (ent->weaponmode == 1) {
+                    TeamFortress_SetSpeed(PROG_TO_EDICT(ent->s.v.enemy));
+                    dremove(ent->oldenemy);
+                    dremove(ent->observer_list);
+                }
+                dremove(ent);
+                ent = world;
+            }
+            ent = trap_find(ent, FOFS(s.v.classname), "detpack");
+        }
+
+        self = oldself;
+    }
+
+    Goal = trap_find(world, FOFS(s.v.classname), "info_tfdetect");
+    ent = Finditem(Goal->display_item_status1);
+
+    if (ent) {
+        owner = PROG_TO_EDICT(ent->s.v.owner);
+        if(owner != world) {
+            tfgoalitem_RemoveFromPlayer(ent, owner, 0);
+        }
+        oldself = self;
+        self = ent;
+        tfgoalitem_remove();
+        self = oldself;
+    }
+
+    ent = Finditem(Goal->display_item_status2);
+
+    if (ent) {
+        owner = PROG_TO_EDICT(ent->s.v.owner);
+        if(owner != world) {
+            tfgoalitem_RemoveFromPlayer(ent, owner, 0);
+        }
+        oldself = self;
+        self = ent;
+        tfgoalitem_remove();
+        self = oldself;
+    }
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "ammobox"));) {
+        dremove(te);
+    }
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "func_button"));) {
+        G_conprintf("button");
+        te->s.v.think = 0;
+        oldself = self;
+        self = te;
+        button_return();
+        // G_conprintf("%s\n%s\n%s", self->s.v.target, self->s.v.message, self->killtarget);
+        
+        if (self->s.v.target) {
+            for (ent = world; (ent = trap_find(ent, FOFS(s.v.targetname), self->s.v.target));) {
+                olderself = self;
+                self = ent;
+                if (streq(ent->s.v.classname, "door")) {
+                    door_go_down();
+                }
+                self = olderself;
+            }
+        }
+
+        self = oldself;
+    }
+}
+
+void RoundTimerThink() {
+    gedict_t* te;
+    int minutes, seconds;
+
+    if (tf_data.cb_prematch_time > g_globalvars.time) {
+        self->heat = 0;
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+            stuffcmd(te, "set roundtimer \"00:00\";\n");
+        }
+        self->s.v.nextthink = g_globalvars.time + 60;
+        return;
+    }
+
+    minutes = (int)self->heat / 60;
+    seconds = (int)self->heat % 60;
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        stuffcmd(te, "set roundtimer \"%d%d:%d%d\";\n", minutes / 10, minutes % 10, seconds / 10, seconds % 10);
+    }
+
+    self->heat++;
+    self->s.v.nextthink = g_globalvars.time + 1;
+}
+
+void ChangeReadyState(int state) {
+    gedict_t* te, *prematch, *timer;
+    int maxclients, readied_up;
+
+    if (!tfset(prematch_readymode)) {
+        return;
+    }
+    if (tf_data.cb_prematch_time - g_globalvars.time <= 0) {
+        return;
+    }
+    if (self->team_no != 1 && self->team_no != 2) {
+        return;
+    }
+
+    prematch = world;
+    prematch = trap_find(prematch, FOFS(s.v.classname), "prematch");
+    if (prematch->heat == 1) {
+        return;
+    }
+
+    self->ready = state;
+    maxclients = trap_cvar("maxclients");
+    readied_up = 0;
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+        if (te->ready) {
+            readied_up++;
+        }
+    }
+    if (state == 1) {
+        if (readied_up == maxclients) {
+            for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
+                te->ready = 0;
+            }
+            prematch->s.v.nextthink = g_globalvars.time;
+            prematch->heat = 1;
+            prematch = world;
+            prematch = trap_find(prematch, FOFS(s.v.classname), "prematch_ready");
+            if (prematch) {
+                dremove(prematch);
+            }
+            if (tfset(admode) && ad_roundnum == 0) {
+                timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
+            } else {
+                timelimit = g_globalvars.time + tfset_roundtime * 60.0 + 10;
+                timelimit_ad = g_globalvars.time + tfset_roundtime * 60.0 + 10;
+                trap_cvar_set_float("timelimit", (float)timelimit / 60.0f);
+            }
+
+            tf_data.cb_prematch_time = g_globalvars.time + 10;
+        }
+    }
 }
