@@ -274,7 +274,8 @@ const char   *GrenadeNames[] = { "BUG",
 	"EMP",
 	"Flash",
 	"Caltrop",
-	"Flash"
+	"Flash",
+	"Spy's EMP"
 };
 
 const char   *GrenadePrimeName[] = { "Grenade",
@@ -288,7 +289,7 @@ const char   *GrenadePrimeName[] = { "Grenade",
 	"EMP grenade",
 	"Flash grenade",
 	"Caltrop canister",
-	"Flash grenade"
+	"Spy's EMP grenade"
 };
 
 const int     classbits[] = { 0, 1, 2, 4, 8, 16, 32, 64, 256, 512, 128 };
@@ -1093,7 +1094,7 @@ static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
             }
             break;
 
-        case GR_TYPE_GAS:
+        case GR_TYPE_SPYEMP:
             newmis->s.v.touch = ( func_t ) GasGrenadeTouch;
             newmis->s.v.think = ( func_t ) GasGrenadeExplode;
             newmis->s.v.skin = isthrow ? 3: 2;
@@ -1132,6 +1133,17 @@ static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
             newmis->s.v.skin = 0;
             SetVector( newmis->s.v.avelocity, 0, 0, 0 );
             printthrowmsg = false;
+            break;
+
+        case GR_TYPE_GAS:
+        	newmis->s.v.touch = ( func_t )SpyEmpTouch;
+            newmis->s.v.think = ( func_t )SpyEmpExplode;
+            newmis->s.v.skin = isthrow ? 3 : 2;
+            SetVector( newmis->s.v.avelocity, 300, 300, 300 );
+            if ( tfset(birthday) && g_random(  ) < 0.6 )
+                setmodel( newmis, "progs/grenade3.mdl" );
+            else
+                setmodel( newmis, "progs/grenade2.mdl" );
             break;
     }
 	if( isthrow && printthrowmsg )

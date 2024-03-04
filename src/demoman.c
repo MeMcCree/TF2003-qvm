@@ -41,7 +41,7 @@ void TeamFortress_DetonatePipebombs(  )
 	// Find all this players pipebombs
 	for ( e = world; (e = trap_find( e, FOFS( s.v.classname ), "pipebomb" )); )
 	{
-		if ( e->s.v.owner == EDICT_TO_PROG( self ) )
+		if ( e->s.v.owner == EDICT_TO_PROG( self ) && e->heat == 0 )
 			e->s.v.nextthink = g_globalvars.time;
 	}
 }

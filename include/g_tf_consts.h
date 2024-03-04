@@ -409,6 +409,7 @@
 #define GR_TYPE_EMP   8
 #define GR_TYPE_FLASH  9
 #define GR_TYPE_CALTROPS  10
+#define GR_TYPE_SPYEMP 11
 
 // Defines for WeaponMode
 #define GL_NORMAL 0

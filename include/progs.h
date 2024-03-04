@@ -194,6 +194,7 @@ typedef struct gedict_s {
 	int             reload_grenade_launcher;
 	int             reload_rocket_launcher;
 	float           heat;
+	float 		saved_nextthink;
 	float           immune_to_check;
 	float           last_saveme_sound;
 	float           last_goal_give;

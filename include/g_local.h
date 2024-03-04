@@ -191,6 +191,7 @@ void            SpectatorDisconnect();
 void            SpectatorThink();
 
 // weapons.c
+void GrenadeExplode();
 
 //extern vec3_t  blood_org;
 

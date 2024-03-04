@@ -1020,3 +1020,142 @@ void SetGasSkins( gedict_t*pl)
     }
 }
 
+void LightningToSpyEmp(int issentry) {
+    gedict_t* te, *tl;
+
+    for (te = world; (te = trap_find(te, FOFS(s.v.classname) , "player" ));) {
+        g_globalvars.msg_entity = EDICT_TO_PROG( te );
+        tl = spawn(  ); 
+        trap_WriteByte( MSG_ONE, SVC_TEMPENTITY );
+        trap_WriteByte( MSG_ONE, (issentry ? TE_LIGHTNING1 : TE_LIGHTNING2));
+        WriteEntity( MSG_ONE, tl );
+        trap_WriteCoord( MSG_ONE, PROG_TO_EDICT(self->s.v.enemy)->s.v.origin[0] );
+        trap_WriteCoord( MSG_ONE, PROG_TO_EDICT(self->s.v.enemy)->s.v.origin[1] );
+        trap_WriteCoord( MSG_ONE, PROG_TO_EDICT(self->s.v.enemy)->s.v.origin[2] );
+        trap_WriteCoord( MSG_ONE, self->s.v.origin[0] );
+        trap_WriteCoord( MSG_ONE, self->s.v.origin[1] );
+        trap_WriteCoord( MSG_ONE, self->s.v.origin[2] + 12 );
+        dremove(tl);
+    }
+}
+
+void PipebombFlicker() {
+    if (self->heat == 0) {
+        self->s.v.nextthink = self->saved_nextthink - 20;
+        self->s.v.think = (func_t)GrenadeExplode;
+        self->s.v.enemy = 0;
+        return; 
+    }
+    if ((int)self->heat % 2 == 0) {
+        LightningToSpyEmp(0);
+    }
+    self->heat--;
+    self->s.v.skin = (self->s.v.skin == 1 ? 2 : 1);
+    if (self->heat == 0) {
+        self->s.v.skin = 2;
+    }
+    self->s.v.nextthink = g_globalvars.time + 0.25;
+}
+
+void    lvl1_sentry_stand();
+void    lvl2_sentry_stand();
+void    lvl3_sentry_stand();
+void SentryFlicker() {
+    if (self->saved_nextthink == 0) {
+        self->s.v.nextthink = g_globalvars.time;
+        self->s.v.think = (func_t)GrenadeExplode;
+        if ( self->s.v.weapon == 1 ) {
+            self->s.v.think = ( func_t ) lvl1_sentry_stand;
+        } else {
+            if ( self->s.v.weapon == 2 ) {
+                self->s.v.think = ( func_t ) lvl2_sentry_stand;
+            } else {
+                self->s.v.think = ( func_t ) lvl3_sentry_stand;
+            }
+        }
+        self->s.v.enemy = 0;
+        return;
+    }
+    if ((int)self->saved_nextthink % 2 == 0) {
+        LightningToSpyEmp(1);
+        T_Damage(self, PROG_TO_EDICT(self->s.v.enemy), PROG_TO_EDICT(PROG_TO_EDICT(self->s.v.enemy)->s.v.owner), 10);
+    }
+    self->saved_nextthink--;
+    self->s.v.effects = (int)self->s.v.effects ^ (int)EF_DIMLIGHT;
+    if (self->saved_nextthink == 0) {
+        self->s.v.effects = (int)self->s.v.effects & (~(int)EF_DIMLIGHT);
+    }
+    self->s.v.nextthink = g_globalvars.time + 0.25;
+}
+
+void SpyEmpTouch() {
+    sound( self, 1, "weapons/bounce.wav", 1, 1 );
+    if ( VectorCompareF( self->s.v.velocity, 0, 0, 0 ) )
+        SetVector( self->s.v.avelocity, 0, 0, 0 );
+}
+
+void SpyEmpEnd() {
+    if (self->heat == 0) {
+        TempEffectCoord(self->s.v.origin, TE_TAREXPLOSION);
+        tf_data.deathmsg = DMSG_GREN_EMP;
+        T_RadiusDamage(self, PROG_TO_EDICT(self->s.v.owner), 30, world);
+        dremove(self);
+        return;
+    }
+    if ((int)self->heat % 2 == 0) {
+        sound(self, CHAN_VOICE, "zap1.wav", 0.1, 1);
+    }
+    self->heat--;
+    self->s.v.effects = (int)self->s.v.effects ^ (int)EF_DIMLIGHT;
+    if (self->heat == 0) {
+        self->s.v.effects = (int)self->s.v.effects & (~(int)EF_DIMLIGHT);
+    }
+    self->s.v.nextthink = g_globalvars.time + 0.25;
+}
+
+void SpyEmpExplode() {
+    gedict_t* te;
+    vec3_t vtemp;
+    int hit = 0;
+
+    for (te = world; (te = trap_findradius(te, self->s.v.origin, 280 ));) {
+        if (streq(te->s.v.classname, "pipebomb")) {
+            if (te->heat == 0) {
+                hit = 1;
+                te->saved_nextthink = te->s.v.nextthink;
+                te->heat = 12;
+                te->s.v.think = (func_t)PipebombFlicker;
+                te->s.v.nextthink = g_globalvars.time;
+                te->s.v.enemy = EDICT_TO_PROG(self);
+            } else {
+                hit = 1;
+                te->heat = 12;
+                te->s.v.nextthink = g_globalvars.time;
+            }
+        } else if (streq(te->s.v.classname, "building_sentrygun")) {
+            if (te->saved_nextthink == 0) {
+                hit = 1;
+                te->saved_nextthink = 12;
+                te->s.v.think = (func_t)SentryFlicker;
+                te->s.v.nextthink = g_globalvars.time;
+                te->s.v.enemy = EDICT_TO_PROG(self);
+            } else {
+                hit = 1;
+                te->s.v.enemy = EDICT_TO_PROG(self);
+                te->s.v.nextthink = g_globalvars.time;
+                te->saved_nextthink = 12;
+            }
+        }
+    }
+
+    if (!hit) {
+        self->heat = 0;
+        SpyEmpEnd();
+    } else {
+        self->heat = 12;
+        self->s.v.movetype = MOVETYPE_NONE;
+        SetVector( self->s.v.velocity, 0, 0, 0 );
+        self->s.v.think = (func_t)SpyEmpEnd;
+        self->s.v.nextthink = g_globalvars.time;
+    }
+}

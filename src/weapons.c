@@ -105,6 +105,7 @@ void W_Precache() {
   trap_precache_sound("weapons/railgun.wav"); // Railgun
   trap_precache_sound("weapons/dartgun.wav"); // Spy's dart gun
   trap_precache_sound("count.wav");           // grenade prime sound
+  trap_precache_sound("zap1.wav");
 
   trap_precache_model("progs/v_flame.mdl");
   trap_precache_model("progs/v_tgun.mdl");
@@ -227,11 +228,12 @@ void W_FireSpanner() {
       return;
     } else {
       if (streq(trace_ent->s.v.classname, "building_sentrygun")) {
-        Engineer_UseSentryGun(trace_ent);
+        if (trace_ent->saved_nextthink == 0)
+          Engineer_UseSentryGun(trace_ent);
         return;
       } else {
         if (streq(trace_ent->s.v.classname, "building_sentrygun_base")) {
-          if (trace_ent->oldenemy)
+          if (trace_ent->oldenemy && trace_ent->oldenemy->saved_nextthink == 0)
             Engineer_UseSentryGun(trace_ent->oldenemy);
           return;
         } else {
@@ -1434,6 +1436,7 @@ void W_FireGrenade() {
       }
     }
     newmis->s.v.classname = "pipebomb";
+    newmis->heat = 0;
     newmis->s.v.skin = 2;
     newmis->s.v.touch = (func_t)PipebombTouch;
     newmis->s.v.nextthink = g_globalvars.time + 120;
@@ -2346,11 +2349,11 @@ void ImpulseCommands() {
     case 7:
     case 8:
     case TF_HEALGUN:
-      ThrowMedkit();
-      break;
-    case TF_MEDIKIT:
     case AXE_IMP:
       W_ChangeWeapon();
+      break;
+    case TF_MEDIKIT:
+      ThrowMedkit();
       break;
     case TF_HOOK_IMP1:
     case TF_HOOK_IMP2:

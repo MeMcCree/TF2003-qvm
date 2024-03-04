@@ -22,7 +22,7 @@
 
 #include "g_local.h"
 
-#define MEDKIT_COST 15
+#define MEDKIT_COST 50
 #define MEDKIT_HEAL 50
 #define MAX_MEDKITS 2
 
