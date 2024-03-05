@@ -122,3 +122,83 @@ void TeamFortress_AutoZoomToggle(  )
 		G_sprint( self, 2, "autozoom OFF\n" );
 	}
 }
+
+
+void SniperBulletTouch() {
+	vec3_t dir, src;
+	float dam_mult;
+	float zdif;
+	vec3_t f;
+	vec3_t g;
+	vec3_t h, tmp;
+    
+    if ( other->s.v.solid == SOLID_TRIGGER )
+        return;
+    if ( trap_pointcontents( PASSVEC3( self->s.v.origin ) ) == -6 ) {
+        dremove( self );
+        return;
+    }
+    if ( other->s.v.takedamage )
+    {
+	    if (streq(other->s.v.classname, "player")) {
+	    	VectorSubtract(self->s.v.origin, src, f);
+	    	g[0] = self->s.v.origin[0];
+	    	g[1] = self->s.v.origin[1];
+	    	g[2] = 0;
+	    	h[0] = other->s.v.origin[0];
+	    	h[1] = other->s.v.origin[1];
+	    	h[2] = 0;
+	    	VectorSubtract(g, h, tmp);
+	    	VectorNormalize(f);
+	    	VectorScale(f, vlen(tmp), f);
+	    	VectorAdd(f, self->s.v.origin, f);
+
+	    	zdif = f[2] - other->s.v.origin[2];
+	    	tf_data.deathmsg = DMSG_SNIPERRIFLE;
+	    	SetVector(other->head_shot_vector, 0, 0, 0);
+	    	if (zdif < 0) {
+	        	dam_mult = 0.5;
+	        	other->leg_damage = other->leg_damage + 2;
+	        	TeamFortress_SetSpeed(other);
+	        	tf_data.deathmsg = DMSG_SNIPERLEGSHOT;
+	        	TF_T_Damage(other, self, PROG_TO_EDICT(self->s.v.owner), self->heat * dam_mult, TF_TD_NOTTEAM, TF_TD_SHOT);
+	        	if (other->s.v.health > 0) {
+	        		G_sprint(other, 0, "Leg injury!\n");
+	        		G_sprint(PROG_TO_EDICT(self->s.v.owner), 1, "Leg shot - that'll slow him down!\n");
+	        	}
+	        	return;
+	      	} else {
+	        	if (zdif > 20) {
+	          		dam_mult = 2;
+	          		stuffcmd(other, "bf\n");
+	          		VectorSubtract(other->s.v.origin, self->s.v.origin, other->head_shot_vector);
+	          		
+	          		tf_data.deathmsg = DMSG_SNIPERHEADSHOT;
+	          		TF_T_Damage(other, self, self, self->heat * dam_mult, TF_TD_NOTTEAM, TF_TD_SHOT);
+	          		if (other->s.v.health > 0) {
+	            		G_sprint(other, 0, "Head injury!\n");
+	            		G_sprint(self, 1, "Head shot - that's gotta hurt!\n");
+	          		}
+	          		return;
+	        } else
+	          tf_data.deathmsg = DMSG_SNIPERRIFLE;
+      		}
+  		}
+    } else {
+        trap_WriteByte( MSG_MULTICAST, SVC_TEMPENTITY );
+        if ( streq( self->s.v.classname, "wizspike" ) )
+            trap_WriteByte( MSG_MULTICAST, TE_WIZSPIKE );
+        else
+        {
+            if ( streq( self->s.v.classname, "knightspike" ) )
+                trap_WriteByte( MSG_MULTICAST, TE_KNIGHTSPIKE );
+            else
+                trap_WriteByte( MSG_MULTICAST, TE_SPIKE );
+        }
+        trap_WriteCoord( MSG_MULTICAST, self->s.v.origin[0] );
+        trap_WriteCoord( MSG_MULTICAST, self->s.v.origin[1] );
+        trap_WriteCoord( MSG_MULTICAST, self->s.v.origin[2] );
+        trap_multicast( PASSVEC3( self->s.v.origin ), 2 );
+    }
+    dremove( self );
+}

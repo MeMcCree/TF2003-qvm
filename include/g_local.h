@@ -209,6 +209,8 @@ void      W_FireSpanner();
 void      W_FireMedikit();
 void      W_FireShotgun();
 void      W_FireSuperShotgun();
+void W_FireSniperRifle_New();
+void SniperBulletTouch();
 void      W_FireSniperRifle();
 void      W_FireAutoRifle();
 void      W_FireAssaultCannon();

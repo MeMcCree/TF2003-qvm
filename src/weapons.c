@@ -880,6 +880,46 @@ void W_FireSniperRifle() {
   ApplyMultiDamage();
 }
 
+void W_FireSniperRifle_New() {
+  vec3_t dir, tmp;
+  gedict_t* newmis;
+
+  if (tfset_snip_fps) {
+    self->heat = (g_globalvars.time - self->heat) * tfset_snip_fps * 3 + SR_INITDAMAGE;
+
+    if (self->heat > SR_MAXDAMAGE)
+      self->heat = SR_MAXDAMAGE;
+  }
+
+  sound(self, 1, "weapons/sniper.wav", 1, 1);
+  KickPlayer(-2, self);
+  if (!tg_data.unlimit_ammo && tf_data.cb_prematch_time <= g_globalvars.time)
+    self->s.v.currentammo = (self->s.v.ammo_shells -= tfset_snip_ammo);
+  trap_makevectors(self->s.v.v_angle);
+  KickPlayer(-2, self);
+  newmis = spawn(  );
+  newmis->s.v.owner = EDICT_TO_PROG( self );
+  newmis->s.v.movetype = MOVETYPE_TOSS; // MOVETYPE_FLYMISSILE
+  newmis->s.v.solid = SOLID_BBOX;
+
+  trap_makevectors( self->s.v.v_angle );
+  VectorCopy( g_globalvars.v_forward, newmis->s.v.velocity );
+  g_globalvars.v_forward[2] += 0.005;
+  VectorScale( g_globalvars.v_forward, 5000, newmis->s.v.velocity );
+  vectoangles( newmis->s.v.velocity, newmis->s.v.angles );
+
+  newmis->s.v.touch = ( func_t ) SniperBulletTouch;
+  newmis->s.v.think = ( func_t ) SUB_Remove;
+  newmis->s.v.nextthink = g_globalvars.time + 60;
+  newmis->heat = self->heat;
+  setmodel( newmis, "progs/spike.mdl" );
+  setsize( newmis, 0, 0, 0, 0, 0, 0 );
+  setorigin( newmis,
+          self->s.v.origin[0] + g_globalvars.v_forward[0] * 8,
+          self->s.v.origin[1] + g_globalvars.v_forward[1] * 8,
+          self->s.v.origin[2] + g_globalvars.v_forward[2] * 8 + 16 );
+}
+
 void W_FireAutoRifle() {
   vec3_t dir;
 
@@ -1232,7 +1272,7 @@ void W_FireHealbeam() {
 
   VectorScale(g_globalvars.v_forward, 4, tmp);
   VectorAdd(g_globalvars.trace_endpos, tmp, tmp);
-  HealbeamHeal(self->s.v.origin, tmp, 2);
+  HealbeamHeal(self->s.v.origin, tmp, 3);
 }
 
 void W_FireLightning() {
@@ -1925,7 +1965,7 @@ void W_Attack() {
   case WEAP_SNIPER_RIFLE:
     if (((int)self->s.v.flags & FL_ONGROUND) || self->hook_out) {
       player_shot(113);
-      W_FireSniperRifle();
+      W_FireSniperRifle_New();
       self->allow_snip_time = g_globalvars.time + tfset_snip_time;
       Attack_Finished(1.5);
     }

@@ -1043,7 +1043,6 @@ void PipebombFlicker() {
     if (self->heat == 0) {
         self->s.v.nextthink = self->saved_nextthink - 20;
         self->s.v.think = (func_t)GrenadeExplode;
-        self->s.v.enemy = 0;
         return; 
     }
     if ((int)self->heat % 2 == 0) {
