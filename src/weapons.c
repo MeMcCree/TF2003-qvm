@@ -1963,11 +1963,7 @@ void W_Attack() {
     sound(self, 0, "weapons/lstart.wav", 0.1, 1);
     break;
   case WEAP_SNIPER_RIFLE:
-    #ifndef NEWSNP
-    if (
-      ((int)self->s.v.flags & FL_ONGROUND) ||
-      self->hook_out) {
-    #endif
+    if ( ((int)self->s.v.flags & FL_ONGROUND) && vlen(self->s.v.velocity) <= self->maxspeed * 1.2 || self->hook_out) {
       player_shot(113);
     #ifdef NEWSNP
       W_FireSniperRifle_New();
@@ -1976,9 +1972,7 @@ void W_Attack() {
     #endif
       self->allow_snip_time = g_globalvars.time + tfset_snip_time;
       Attack_Finished(1.5);
-    #ifndef NEWSNP
     }
-    #endif
     break;
   case WEAP_AUTO_RIFLE:
     player_autorifle1();
