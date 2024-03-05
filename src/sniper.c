@@ -123,7 +123,6 @@ void TeamFortress_AutoZoomToggle(  )
 	}
 }
 
-
 void SniperBulletTouch() {
 	vec3_t dir, src;
 	float dam_mult;
@@ -138,9 +137,13 @@ void SniperBulletTouch() {
         dremove( self );
         return;
     }
+
     if ( other->s.v.takedamage )
     {
 	    if (streq(other->s.v.classname, "player")) {
+	    	src[0] = PROG_TO_EDICT(self->s.v.owner)->s.v.origin[0] + g_globalvars.v_forward[0] * 10;
+		  	src[1] = PROG_TO_EDICT(self->s.v.owner)->s.v.origin[1] + g_globalvars.v_forward[1] * 10;
+		  	src[2] = PROG_TO_EDICT(self->s.v.owner)->s.v.absmin[2] + self->s.v.size[2] * 0.7;
 	    	VectorSubtract(self->s.v.origin, src, f);
 	    	g[0] = self->s.v.origin[0];
 	    	g[1] = self->s.v.origin[1];
@@ -156,6 +159,7 @@ void SniperBulletTouch() {
 	    	zdif = f[2] - other->s.v.origin[2];
 	    	tf_data.deathmsg = DMSG_SNIPERRIFLE;
 	    	SetVector(other->head_shot_vector, 0, 0, 0);
+	    	G_conprintf("%f\n", zdif);
 	    	if (zdif < 0) {
 	        	dam_mult = 0.5;
 	        	other->leg_damage = other->leg_damage + 2;
@@ -166,23 +170,30 @@ void SniperBulletTouch() {
 	        		G_sprint(other, 0, "Leg injury!\n");
 	        		G_sprint(PROG_TO_EDICT(self->s.v.owner), 1, "Leg shot - that'll slow him down!\n");
 	        	}
+	        	dremove(self);
 	        	return;
 	      	} else {
 	        	if (zdif > 20) {
-	          		dam_mult = 2;
+	          		dam_mult = 3;
 	          		stuffcmd(other, "bf\n");
 	          		VectorSubtract(other->s.v.origin, self->s.v.origin, other->head_shot_vector);
 	          		
 	          		tf_data.deathmsg = DMSG_SNIPERHEADSHOT;
-	          		TF_T_Damage(other, self, self, self->heat * dam_mult, TF_TD_NOTTEAM, TF_TD_SHOT);
+	          		TF_T_Damage(other, self, PROG_TO_EDICT(self->s.v.owner), self->heat * dam_mult, TF_TD_NOTTEAM, TF_TD_SHOT);
 	          		if (other->s.v.health > 0) {
 	            		G_sprint(other, 0, "Head injury!\n");
 	            		G_sprint(self, 1, "Head shot - that's gotta hurt!\n");
 	          		}
+	          		dremove(self);
 	          		return;
-	        } else
-	          tf_data.deathmsg = DMSG_SNIPERRIFLE;
+		        } else {
+		          tf_data.deathmsg = DMSG_SNIPERRIFLE;
+		          TF_T_Damage(other, self, PROG_TO_EDICT(self->s.v.owner), self->heat, TF_TD_NOTTEAM, TF_TD_SHOT);
+		        }
       		}
+  		} else {
+  			tf_data.deathmsg = DMSG_SNIPERRIFLE;
+        	TF_T_Damage(other, self, PROG_TO_EDICT(self->s.v.owner), self->heat, TF_TD_NOTTEAM, TF_TD_SHOT);
   		}
     } else {
         trap_WriteByte( MSG_MULTICAST, SVC_TEMPENTITY );
@@ -200,5 +211,6 @@ void SniperBulletTouch() {
         trap_WriteCoord( MSG_MULTICAST, self->s.v.origin[2] );
         trap_multicast( PASSVEC3( self->s.v.origin ), 2 );
     }
-    dremove( self );
+
+    dremove(self);
 }

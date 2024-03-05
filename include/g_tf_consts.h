@@ -381,7 +381,7 @@
 #define RE_ROCKET_LAUNCHER_TIME  5
 
 // Maximum velocity you can move and fire the Sniper Rifle
-#define WEAP_SNIPER_RIFLE_MAX_MOVE 125
+#define WEAP_SNIPER_RIFLE_MAX_MOVE 50
 
 // Medikit
 #define WEAP_MEDIKIT_HEAL 200  // Amount medikit heals per hit

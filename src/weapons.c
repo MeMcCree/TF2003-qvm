@@ -905,13 +905,13 @@ void W_FireSniperRifle_New() {
   trap_makevectors( self->s.v.v_angle );
   VectorCopy( g_globalvars.v_forward, newmis->s.v.velocity );
   g_globalvars.v_forward[2] += 0.005;
-  VectorScale( g_globalvars.v_forward, 5000, newmis->s.v.velocity );
+  VectorScale( g_globalvars.v_forward, 6000, newmis->s.v.velocity );
   vectoangles( newmis->s.v.velocity, newmis->s.v.angles );
 
   newmis->s.v.touch = ( func_t ) SniperBulletTouch;
   newmis->s.v.think = ( func_t ) SUB_Remove;
   newmis->s.v.nextthink = g_globalvars.time + 60;
-  newmis->heat = self->heat;
+  newmis->heat = 150;
   setmodel( newmis, "progs/spike.mdl" );
   setsize( newmis, 0, 0, 0, 0, 0, 0 );
   setorigin( newmis,
@@ -1963,12 +1963,22 @@ void W_Attack() {
     sound(self, 0, "weapons/lstart.wav", 0.1, 1);
     break;
   case WEAP_SNIPER_RIFLE:
-    if (((int)self->s.v.flags & FL_ONGROUND) || self->hook_out) {
+    #ifndef NEWSNP
+    if (
+      ((int)self->s.v.flags & FL_ONGROUND) ||
+      self->hook_out) {
+    #endif
       player_shot(113);
+    #ifdef NEWSNP
       W_FireSniperRifle_New();
+    #else
+      W_FireSniperRifle();
+    #endif
       self->allow_snip_time = g_globalvars.time + tfset_snip_time;
       Attack_Finished(1.5);
+    #ifndef NEWSNP
     }
+    #endif
     break;
   case WEAP_AUTO_RIFLE:
     player_autorifle1();
@@ -2812,6 +2822,7 @@ void W_WeaponFrame() {
       Attack_Finished(0.2);
     } else {
       switch (self->current_weapon) {
+#ifndef NEWSNP
       case WEAP_SNIPER_RIFLE:
         if (self->tfstate & TFSTATE_AIMING) {
           if (!tfset_snip_fps && self->heat < 400)
@@ -2839,6 +2850,7 @@ void W_WeaponFrame() {
         }
 
         break;
+#endif
       case WEAP_ASSAULT_CANNON:
         if ((int)self->s.v.flags & FL_ONGROUND) {
           SuperDamageSound();

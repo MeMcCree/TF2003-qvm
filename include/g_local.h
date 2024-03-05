@@ -44,6 +44,7 @@
 #include "tf_set.h"
 
 #define NEWHWGUY
+#define NEWSNP
 #define HAS_SENTRY_CHECK
 
 #include "tg.h"

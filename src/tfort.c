@@ -1307,10 +1307,10 @@ void TeamFortress_SetSpeed( gedict_t * p )
 	}
 	if ( p->tfstate & TFSTATE_AIMING )
 	{
-		if ( p->maxfbspeed > 125 )
-			p->maxfbspeed = 125;
-		if ( p->maxstrafespeed > 125 )
-			p->maxstrafespeed = 125;
+		if ( p->maxfbspeed > 80 )
+			p->maxfbspeed = 80;
+		if ( p->maxstrafespeed > 80 )
+			p->maxstrafespeed = 80;
 	}
 
 	stuffcmd( p, "cl_backspeed %d\n", p->maxfbspeed );
