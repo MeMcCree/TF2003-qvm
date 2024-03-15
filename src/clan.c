@@ -419,7 +419,7 @@ void PreMatchReady_Think() {
             }
         }
         for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
-            G_centerprint(te, "&c44fBlue&r\n\n%s\n&cf00Red&r\n\n%s\n\n%s", bstmp, rstmp, (te->ready ? "\n" : "&c888----------------&r\n\nType &cf20/ready&r to ready up\n"));
+            G_centerprint(te, "&c44fBlue&r\n\n%s\n&cf00Red&r\n\n%s\n\n%s", bstmp, rstmp, (te->ready ? "&c888----------------&r\n\nIf you are not ready, type &cf20/unready&r\n" : "&c888----------------&r\n\nType &cf20/ready&r to ready up\n"));
             te->StatusRefreshTime = g_globalvars.time + 1.5;
         }
     }
