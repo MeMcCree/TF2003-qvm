@@ -2538,8 +2538,11 @@ void W_WeaponFrame() {
   }
   if (g_globalvars.time < self->attack_finished) {
     DeadImpulses();
-    if (self->s.v.impulse)
+    if ((self->s.v.impulse == TF_GRENADE_T || self->s.v.impulse == TF_GRENADE_1 || self->s.v.impulse == TF_GRENADE_2) && self->current_weapon != WEAP_ASSAULT_CANNON && self->current_weapon != WEAP_NAILGUN && self->current_weapon != WEAP_SUPER_NAILGUN) {
+      ImpulseCommands();
+    } else {
       Angel_SaveImpulse(self->s.v.impulse);
+    }
     return;
   }
   if (self->s.v.impulse && !self->has_disconnected)

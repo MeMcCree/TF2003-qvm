@@ -177,6 +177,11 @@ void T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker, float
 	if ( !targ->s.v.takedamage )
 		return;
 
+	if ( streq( targ->s.v.classname, "player" ) && targ->playerclass == PC_SPY) {
+		targ->last_attacker = attacker;
+		targ->last_dmsg = tf_data.deathmsg;
+	}
+
 	if ( streq( attacker->s.v.classname, "player" ) )
 		damage = damage * 0.9;
 	if ( streq( attacker->s.v.classname, "player" ) )
@@ -356,6 +361,12 @@ void TF_T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker,
 
 	if ( !targ->s.v.takedamage )
 		return;
+
+	if ( streq( targ->s.v.classname, "player" ) && targ->playerclass == PC_SPY) {
+		targ->last_attacker = attacker;
+		targ->last_dmsg = tf_data.deathmsg;
+	}
+	
 	if ( T_AttackType & TF_TD_NOSOUND )
 	{
 	        if(streq(targ->s.v.classname,"player"))

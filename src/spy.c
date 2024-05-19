@@ -48,6 +48,726 @@ void _spy_up(  )
     }
 }
 
+void SpyFeignDeathNotes( gedict_t * targ, gedict_t * attacker )
+{
+    float   rnum;
+    char   *deathstring = "";
+
+    rnum = g_random();
+    if ( tf_data.cb_prematch_time + 3 > g_globalvars.time )
+        return;
+    if ( strneq( targ->s.v.classname, "player" ) )
+    {
+        if ( streq( targ->s.v.classname, "building_sentrygun" ) )
+        {
+            if ( streq( attacker->s.v.classname, "teledeath" ) )
+            {
+                G_bprint( 1, "%s's sentrygun was telefragged by %s\n", targ->real_owner->s.v.netname,
+                        PROG_TO_EDICT( attacker->s.v.owner )->s.v.netname );
+                return;
+            }
+            if ( streq( attacker->s.v.classname, "player" ) )
+            {
+                if ( attacker == targ->real_owner )
+                {
+                    G_bprint( 1, "%s destroys his sentrygun\n", targ->real_owner->s.v.netname );
+                    return;
+                }
+                G_bprint( 1, "%s's sentrygun was destroyed by %s\n", targ->real_owner->s.v.netname,
+                        attacker->s.v.netname );
+                return;
+            }
+        }
+    }
+    if ( strneq( targ->s.v.classname, "player" ) )
+        return;
+
+    if ( streq( attacker->s.v.classname, "teledeath" ) )
+    {
+        G_bprint( 1, "%s was telefragged by %s\n", targ->s.v.netname,
+                PROG_TO_EDICT( attacker->s.v.owner )->s.v.netname );
+        return;
+    }
+    if ( streq( attacker->s.v.classname, "teledeath2" ) )
+    {
+        G_bprint( 1, "Satan's power deflects %s's telefrag\n", targ->s.v.netname );
+        logfrag( targ, targ );
+        return;
+    }
+    if ( tf_data.deathmsg == DMSG_TEAMKILL )
+    {
+        G_bprint( 1, "%s shoots his teammate one too many times.\n", targ->s.v.netname );
+        return;
+    }
+    if ( streq( attacker->s.v.classname, "info_tfgoal" ) || streq( attacker->s.v.classname, "item_tfgoal" ) )
+    {
+        if ( attacker->deathtype && attacker->deathtype[0] )
+        {
+            G_bprint( 1, "%s%s", targ->s.v.netname, attacker->deathtype );
+        }
+        logfrag( targ, targ );
+        return;
+    }
+    //player vs player or bot
+    if ( streq( attacker->s.v.classname, "player" ) || streq( attacker->s.v.classname, "bot" ) )
+    {
+        if ( targ == attacker )
+        {
+            if ( tfset(birthday) && g_random() < 0.3 )
+            {
+                if ( g_random() < 0.1 )
+                {
+                    G_bprint( 1, "It's %s's party and he'll cry if he wants to!\n",
+                            targ->s.v.netname );
+                    return;
+                }
+                if ( g_random() < 0.5 )
+                    G_bprint( 1, "%s gets too selfish with his gifts\n", targ->s.v.netname );
+                else
+                    G_bprint( 1, "%s wasn't born so beautiful after all\n", targ->s.v.netname );
+                return;
+            }
+            switch ( tf_data.deathmsg )
+            {
+                case DMSG_GREN_HAND:
+                    switch ( targ->playerclass )
+                    {
+                        case PC_SNIPER:
+                            deathstring = "%s got splattered by his own grenade\n";
+                            break;
+                        case PC_SOLDIER:
+                            deathstring = "%s sat on his own grenade\n";
+                            break;
+                        case PC_DEMOMAN:
+                            deathstring = "%s got to know his grenade too well\n";
+                            break;
+                        case PC_MEDIC:
+                            deathstring = "%s caught the end of his own grenade\n";
+                            break;
+                        case PC_HVYWEAP:
+                            deathstring = "%s got too close to his own grenade\n";
+                            break;
+                        case PC_PYRO:
+                            deathstring = "%s let his own grenade get the best of him\n";
+                            break;
+                        case PC_SPY:
+                            deathstring = "%s tiptoed over his own grenade\n";
+                            break;
+                        case PC_ENGINEER:
+                            deathstring = "%s stared at his grenade too long\n";
+                            break;
+                        default:
+                            deathstring = "%s grenades himself\n";
+                            break;
+                    }
+                    break;
+                case DMSG_GREN_NAIL:
+                    deathstring = "%s hammers himself\n";
+                    break; 
+                case DMSG_GREN_MIRV:
+                    switch ( targ->playerclass )
+                    {
+                        case PC_DEMOMAN:
+                            deathstring = "%s practiced his own Mirv dance\n";
+                            break;
+                        case PC_HVYWEAP:
+                            deathstring = "%s allowed his Mirv to turn against him\n";
+                            break;
+                        default:
+                            deathstring = "%s goes to pieces\n";
+                            break;
+
+                    }
+                    break;
+                case DMSG_GREN_PIPE:
+                    deathstring = "%s ambushes himself with his own pipebombs\n";
+                    break;
+                case DMSG_PIPEBOMB:
+                    deathstring = "%s tried to juggle his own pipebombs\n";
+                    break;
+                case DMSG_GREN_GAS:
+                    deathstring = "%s chokes on his own gas\n";
+                    break;
+                case DMSG_GREN_EMP:
+                    deathstring = "%s explodes his ammo and body\n";
+                    break;
+                case DMSG_CALTROP:
+                    deathstring = "%s stepped on too many of his own caltrops\n";
+                    break;
+                case DMSG_GREN_FLASH:
+                    deathstring = "%s is charred by his own flash grenade\n";
+                    break;
+                case DMSG_GREN_EMP_AMMO:
+                    deathstring = "%s detonates an ammo box too close to him\n";
+                    break;
+                case DMSG_DETPACK:
+                    deathstring = "%s set the detpack and forgot to run\n";
+                    break;
+                case DMSG_BIOWEAPON:
+                    deathstring = "%s died impossibly!\n";
+                    break;
+                case DMSG_ROCKETL:
+                    if ( rnum < 0.5 )
+                        deathstring = "%s becomes bored with life\n";
+                    else
+                        deathstring = "%s checks if his weapon is loaded\n";
+                    break;
+                case DMSG_INCENDIARY:
+                    deathstring = "%s chars himself with an incendiary rocket\n";
+                    break;
+                case DMSG_GRENADEL:
+                    deathstring = "%s tries to put the pin back in\n";
+                    break;
+                case DMSG_FLAME:
+                    deathstring = "%s torches himself\n";
+                    break;
+                case DMSG_LIGHTNING:
+                    if ( targ->s.v.waterlevel > 1 )
+                        deathstring = "%s discharges into the water.\n";
+                    break;
+                case DMSG_SG_EXPLODION:
+                    deathstring = "%s gets too friendly with his sentrygun.\n";
+                    break;
+                case DMSG_DISP_EXPLODION:
+                    deathstring = "%s dispenses with himself.\n";
+                    break;
+            }
+            G_bprint( 1, deathstring, targ->s.v.netname );
+            return;
+        }       //end of sucides
+        else
+        {
+            if ( teamplay && attacker->team_no == targ->team_no && attacker->team_no > 0 )
+            {
+                if ( tfset(birthday) && g_random() < 0.3 )
+                {
+                    if ( g_random() < 0.3 )
+                        G_bprint( 1, "%s is a party-pooper!\n", targ->s.v.netname );
+                    else
+                        G_bprint( 1, "%s gives gifts to his teammates!\n", targ->s.v.netname );
+                    return;
+                }
+                switch ( ( int ) ( g_random() * 4 ) )
+                {
+                    case 0:
+                        deathstring = "%s mows down teammate %s\n";
+                        break;
+                    case 1:
+                        deathstring = "%s checks his glasses after killing %s\n";
+                        break;
+                    case 2:
+                        deathstring = "%s gets a frag for the other team with %s's death\n";
+                        break;
+                    default:
+                        deathstring = "%s killed his supposed friend %s\n";
+                        break;
+                }
+                if ( tf_data.deathmsg == DMSG_MEDIKIT )
+                {
+                    G_bprint( 1, "%s didn't survive the operation by %s\n", targ->s.v.netname,
+                            attacker->s.v.netname );
+                    return;
+                }
+                G_bprint( 1, deathstring, attacker->s.v.netname, targ->s.v.netname );
+                return;
+            }   //end of teamkills
+            else
+            {
+                logfrag( attacker, targ );
+                if ( tfset(birthday) && g_random() < 0.5 )
+                {
+                    switch ( tf_data.deathmsg )
+                    {
+                        case 9:
+                            deathstring = "%s chews on %s's nails!\n";
+                            break;
+                        case 10:
+                            deathstring = "%s gathers the darling buds of %s's Mirv grenade\n";
+                            break;
+                        case 30:
+                            deathstring = "%s's presents go up in %s's EMP presence.\n";
+                            break;
+                        case 35:
+                            G_bprint( 1, "%s goes POP!\n", targ->s.v.netname );
+                            return;
+                        case 31:
+                            deathstring = "%s stands to near %s's birthday surprise\n";
+                            break;
+                        case 12:
+                            deathstring = "%s eats %s's good cheer!\n";
+                            if ( g_random() < 0.1 )
+                                G_bprint( 1, "Damn that jokey smurf!\n" );
+                            break;
+                        case 16:
+                            deathstring = "%s cut the red ribbon of %s's detpack\n";
+                            break;
+                        case 5:
+                            deathstring = "%s recieves a gift from %s\n";
+                            if ( targ->s.v.health < -40 )
+                                deathstring = "%s plays pass-the-parcel with %s\n";
+                            break;
+                        case 6:
+                            deathstring = "%s rides %s's firecracker\n";
+                            if ( targ->s.v.health < -40 )
+                            {
+                                G_bprint( 1,
+                                        "%s gets turned into little %s's by %s's firecracker",
+                                        targ->s.v.netname, targ->s.v.netname,
+                                        attacker->s.v.netname );
+                                return;
+                            }
+                            break;
+                        case 15:
+                            if ( ( int ) ( g_random() * 2 ) )
+                                deathstring = "%s gets too close to %s's kitchen\n";
+                            else
+                                deathstring = "%s plays with %s's fire\n";
+                            break;
+                        case 18:
+                            if ( ( int ) ( g_random() * 3 ) )
+                                deathstring = "%s blocks %s's birthday bullet with his chest\n";
+                            else
+                                deathstring = "%s gets party popped by %s\n";
+                            break;
+                        case 29:
+                            if ( ( int ) ( g_random() * 2 ) )
+                                deathstring =
+                                    "%s ALMOST catches %s's bullet between his teeth!\n";
+                            else
+                                deathstring = "%s loves snipers like %s\n";
+                            break;
+                        case 28:
+                            deathstring = "%s won't run crying to %s anymore\n";
+                            break;
+                        case 19:
+                            deathstring = "%s collects %s's highspeed gifts.\n";
+                            break;
+                        case 20:
+                            deathstring = "%s died. I blame %s\n";
+                            break;
+                        case 22:
+                            deathstring = "%s gets a gift in the back from %s\n";
+                            break;
+                        case 2:
+                            deathstring = "%s gets a double of %s's buck\n";
+                            break;
+                        case 25:
+                            deathstring = "%s is all partied out by %s\n";
+                            break;
+                        case 26:
+                            deathstring = "%s gets derailed by %s\n";
+                            break;
+                        case 3:
+                            deathstring = "%s gets no say in it, no say in it at all! sings %s\n";
+                            break;
+                        case 33:
+                            deathstring = "%s gets all fired up by %s\n";
+                            break;
+                        default:    //death msg 8??? 
+                            if ( ( int ) ( g_random() * 2 ) )
+                                deathstring = "%s recieves a gift from %s\n";
+                            else
+                                deathstring = "%s has a happy birthday, thanks to %s\n";
+                            break;
+
+                    }
+                    G_bprint( 1, deathstring, targ->s.v.netname, attacker->s.v.netname );
+                    return;
+                }   //end of player vs player Birthday messages
+                //normal player vs player messages
+                switch ( tf_data.deathmsg )
+                {
+                    case DMSG_GREN_HAND:
+                        switch ( attacker->playerclass )
+                        {
+                            case PC_SNIPER:
+                                deathstring = "%s got up-close and personal with %s's grenade\n";
+                                break;
+                            case PC_SOLDIER:
+                                deathstring = "%s played catch with %s's grenade\n";
+                                break;
+                            case PC_DEMOMAN:
+                                deathstring = "%s received a pineapple enema from %s\n";
+                                break;
+                            case PC_MEDIC:
+                                deathstring = "%s fetched %s's pineapple\n";
+                                break;
+                            case PC_HVYWEAP:
+                                deathstring = "%s caught too much shrapnel from %s's grenade\n";
+                                break;
+                            case PC_PYRO:
+                                deathstring = "%s tried to pick up %s's hot potato\n";
+                                break;
+                            case PC_SPY:
+                                deathstring = "%s thought %s was tossing him a spare grenade\n";
+                                break;
+                            case PC_ENGINEER:
+                                deathstring =
+                                    "%s stops to ponder the technical details of %s's grenade\n";
+                                break;
+                            default:
+                                deathstring = "%s surfs on a grenade from %s\n";
+                                break;
+                        }
+                        break;
+                    case DMSG_GREN_NAIL:
+                        deathstring = "%s gets flayed by %s's nail grenade\n";
+                        break;
+                    case DMSG_GREN_MIRV:
+                        if ( attacker->playerclass == 4 )
+                            deathstring = "%s does a dance on %s's Mirv grenade\n";
+                        else
+                            deathstring = "%s gets spammed by %s's Mirv grenade\n";
+                        break;
+                    case DMSG_GREN_PIPE:
+                        deathstring = "%s is caught by %s's pipebomb trap\n";
+                        break;
+                    case DMSG_PIPEBOMB:
+                        deathstring = "%s fell victim to %s's fireworks\n";
+                        break;
+                    case DMSG_GREN_GAS:
+                        deathstring = "%s gags on %s's noxious gasses\n";
+                        break;
+                    case DMSG_GREN_EMP:
+                        deathstring = "%s's ammo detonates him as %s's EMP fries it\n";
+                        break;
+                    case DMSG_CALTROP:
+                        deathstring = "%s stepped on too many of %s's caltrops\n";
+                        break;
+                    case DMSG_GREN_FLASH:
+                        deathstring = "%s is charred by %s's flash grenade\n";
+                        break;
+                    case DMSG_GREN_EMP_AMMO:
+                        deathstring = "%s stands near some ammo as %s's EMP nukes it\n";
+                        break;
+                    case DMSG_DETPACK:
+                        deathstring = "%s reaches orbit via %s's detpack\n";
+                        break;
+                    case DMSG_DETPACK_DIS:
+                        deathstring = "%s cut the red wire of %s's detpack\n";
+                        break;
+                    case DMSG_BIOWEAPON:
+                        deathstring = "%s dies from %s's mysterious tropical disease\n";
+                        break;
+                    case DMSG_BIOWEAPON_ATT:
+                        deathstring = "%s escapes infection from %s by dying first\n";
+                        break;
+                    case DMSG_GRENADEL:
+                        deathstring = "%s eats %s's pineapple\n";
+                        if ( targ->s.v.health < -40 )
+                            deathstring = "%s was gibbed by %s's grenade\n";
+                        break;
+                    case DMSG_ROCKETL:
+                        deathstring = "%s rides %s's rocket\n";
+                        if ( targ->s.v.health < -40 )
+                            deathstring = "%s was gibbed by %s's rocket\n";
+                        break;
+                    case DMSG_FLAME:
+                        switch ( ( int ) ( rnum * 5 ) )
+                        {
+                            case 0:
+                                deathstring = "%s is burnt up by %s's flame\n";
+                                break;
+                            case 1:
+                                deathstring = "%s is fried by %s's fire\n";
+                                break;
+                            case 2:
+                                deathstring = "%s feels %s's fire of wrath\n";
+                                break;
+                            case 3:
+                                deathstring = "%s is reduced to ashes by %s\n";
+                                break;
+                            default:
+                                deathstring = "%s is grilled by %s's flame\n";
+                                break;
+                        }
+                        break;
+                    case DMSG_AXE:
+                        switch ( attacker->playerclass )
+                        {
+                            case PC_SPY:
+                                deathstring = "%s was knife-murdered by %s\n";
+                                break;
+                            case PC_SCOUT:
+                                deathstring = "%s's mellon was split by %s\n";
+                                break;
+                            case PC_SNIPER:
+                                deathstring = "%s was put on the chop block by %s\n";
+                                break;
+                            case PC_SOLDIER:
+                                deathstring = "%s was sliced and diced by %s's blade\n";
+                                break;
+                            case PC_DEMOMAN:
+                                deathstring = "%s is split from crotch to sternum by %s's axe swing\n";
+                                break;
+                            case PC_HVYWEAP:
+                                deathstring = "%s is split in two with a powerful axe blow from %s\n";
+                                break;
+                            case PC_PYRO:
+                                deathstring = "%s's death put another notch on %s's axe\n";
+                                break;
+                            default:
+                                deathstring = "%s's death put another notch on %s's axe\n";
+                                break;
+                        }
+                        break;
+
+                    case DMSG_SPANNER:
+                        deathstring = "%s was spanner-murdered by %s\n";
+                        break;
+                    case DMSG_SHOTGUN:
+                        switch ( attacker->playerclass )
+                        {
+                            case PC_SCOUT:
+                                deathstring = "%s got too close to %s's muzzleflash\n";
+                                break;
+                            case PC_SOLDIER:
+                                deathstring = "%s practices being %s's clay pigeon\n";
+                                break;
+                            case PC_DEMOMAN:
+                                deathstring = "%s was on the receiving end of %s's shotgun barrel\n";
+                                break;
+                            case PC_MEDIC:
+                                deathstring = "%s was fed a lead diet by %s\n";
+                                break;
+                            case PC_HVYWEAP:
+                                deathstring = "%s got blasted by %s's last resort\n";
+                                break;
+                            case PC_PYRO:
+                                deathstring = "%s got more than a powderburn from %s's shotgun blast\n";
+                                break;
+                            default:
+                                deathstring = "%s chewed on %s's boomstick\n";
+                                break;
+                        }
+                        break;
+                    case DMSG_SSHOTGUN:
+                        switch ( attacker->playerclass )
+                        {
+
+                            case PC_SOLDIER:
+                                deathstring = "%s was turned into swiss cheese by %s's buckshot\n";
+                                break;
+                            case PC_MEDIC:
+                                deathstring = "%s got a double-dose of %s's buckshot\n";
+                                break;
+                            case PC_HVYWEAP:
+                                deathstring = "%s unfortunately forgot %s carried a super-shotgun\n";
+                                break;
+                            case PC_SPY:
+                                deathstring = "%s gets ventilated by %s's super-shotgun blast\n";
+                                break;
+                            case PC_ENGINEER:
+                                deathstring = "%s's body got chuck full of %s's lead pellets\n";
+                                break;
+                            default:
+                                deathstring = "%s ate 2 loads of %s's buckshot\n";
+                                break;
+                        }
+                        break;
+                    case DMSG_NAILGUN:
+                        switch ( attacker->playerclass )
+                        {
+                            case PC_SCOUT:
+                                deathstring = "%s caught one too many nails from %s\n";
+                                break;
+                            case PC_SNIPER:
+                                deathstring = "%s ran into %s's nails\n";
+                                break;
+                            case PC_SPY:
+                                deathstring = "%s was turned into %s's pin-cushion\n";
+                                break;
+                            default:
+                                deathstring = "%s was nailed by %s\n";
+                                break;
+                        }
+                        break;
+                    case DMSG_SNAILGUN:
+                        deathstring = "%s was punctured by %s\n";
+                        break;
+                    case DMSG_LIGHTNING:
+                        if ( attacker->s.v.waterlevel > 1 )
+                            deathstring = "%s accepts %s's discharge\n";
+                        else
+                            deathstring = "%s accepts %s's shaft\n";
+                        break;
+                    case DMSG_HOOK:
+                        deathstring = "%s grappled with %s\n";
+                        break;
+                    case DMSG_SNIPERRIFLE:
+                        if ( rnum <= 0.3 )
+                        {
+                            deathstring = "%s takes a bullet in the chest from %s\n";
+                        } else
+                        {
+                            deathstring = "%s succumbs to sniperfire from %s\n";
+                        }
+                        break;
+                    case DMSG_SNIPERHEADSHOT:
+                        if ( rnum <= 0.5 )
+                        {
+                            deathstring = "%s gets a third eye from %s\n";
+                        } else
+                        {
+                            deathstring = "%s gets his head blown off by %s\n";
+                        }
+                        break;
+                    case DMSG_SNIPERLEGSHOT:
+                        if ( rnum <= 0.5 )
+                        {
+                            deathstring = "%s is made legless by %s\n";
+                        } else
+                        {
+                            deathstring = "%s gets his legs blown off by %s\n";
+                        }
+                        break;
+                    case DMSG_AUTORIFLE:
+                        deathstring = "%s collects %s's bullet spray.\n";
+                        break;
+                    case DMSG_ASSAULTCANNON:
+                        deathstring = "%s gets sawn in half by %s\n";
+                        break;
+                    case DMSG_BACKSTAB:
+                        deathstring = "%s gets knifed from behind by %s\n";
+                        break;
+                    case DMSG_TRANQ:
+                        deathstring = "%s is put to sleep by %s\n";
+                        break;
+                    case DMSG_LASERBOLT:
+                        deathstring = "%s gets a hole in his heart from %s's railgun\n";
+                        break;
+                    case DMSG_INCENDIARY:
+                        deathstring = "%s gets well done by %s's incendiary rocket\n";
+                        break;
+                    case DMSG_SG_EXPLODION:
+                        deathstring = "%s gets destroyed by %s's exploding sentrygun\n";
+                        break;
+                    case DMSG_DISP_EXPLODION:
+                        deathstring = "%s didn't insert the correct change into %s's dispenser.\n";
+                        break;
+
+                }
+                G_bprint( 1, deathstring, targ->s.v.netname, attacker->s.v.netname );
+            }
+        }
+        return;
+    }           //end of player vs player
+    else
+    {
+        if ( streq( attacker->s.v.classname, "building_sentrygun" ) )
+        {
+            if ( targ == attacker->real_owner )
+            {
+                if ( tf_data.deathmsg == DMSG_SENTRYGUN_ROCKET )
+                    deathstring = "%s intercepts his sentry gun's rocket\n";
+                else
+                {
+                    if ( tf_data.deathmsg == DMSG_SENTRYGUN_BULLET )
+                        deathstring = "%s crossed his sentry gun's line of fire\n";
+                }
+                G_bprint( 1, deathstring, targ->s.v.netname );
+            } else
+            {
+                if ( teamplay && attacker->team_no == targ->team_no && attacker->team_no > 0 )
+                {
+                    G_bprint( 1, "%s obstructs his team's sentry gun\n", targ->s.v.netname );
+                } else
+                {
+                    logfrag( attacker->real_owner, targ );
+                    if ( tf_data.deathmsg == DMSG_SENTRYGUN_ROCKET )
+                    {
+                        deathstring = "%s hates %s's sentry gun\n";
+                    } else
+                    {
+                        if ( tf_data.deathmsg == DMSG_SENTRYGUN_BULLET )
+                        {
+                            deathstring = "%s is mown down by %s's sentry gun\n";
+                        }
+                    }
+                    G_bprint( 1, deathstring, targ->s.v.netname,
+                            attacker->real_owner->s.v.netname );
+                }
+            }
+        } else
+        {
+            logfrag( targ, targ );
+            rnum = targ->s.v.watertype;
+            switch ( ( int ) targ->s.v.watertype )
+            {
+                case -3:
+                    if ( tfset(birthday) )
+                    {
+                        if ( g_random() < 0.5 )
+                            deathstring = "%s bobs for apples\n";
+                        else
+                            deathstring = "%s drowns in the punch\n";
+                    } else
+                    {
+                        if ( g_random() < 0.5 )
+                            deathstring = "%s sleeps with the fishes\n";
+                        else
+                            deathstring = "%s sucks it down\n";
+                    }
+                    break;
+                case -4:
+                    if ( g_random() < 0.5 )
+                        deathstring = "%s gulped a load of slime\n";
+                    else
+                        deathstring = "%s can't exist on slime alone\n";
+                    break;
+                case -5:
+                    if ( targ->s.v.health < -15 )
+                        deathstring = "%s burst into flames\n";
+                    else
+                    {
+                        if ( g_random() < 0.5 )
+                            deathstring = "%s turned into hot slag\n";
+                        else
+                            deathstring = "%s visits the Volcano God\n";
+                    }
+                    break;
+                default:
+                    if ( streq( attacker->s.v.classname, "explo_box" ) )
+                    {
+                        deathstring = "%s blew up\n";
+                        break;
+                    }
+                    if ( attacker->s.v.solid == 4 && attacker != world )
+                    {
+                        deathstring = "%s was squished\n";
+                        break;
+                    }
+                    if ( streq( targ->deathtype, "falling" ) )
+                    {
+                        targ->deathtype = "";
+                        deathstring = "%s fell to his death\n";
+                        break;
+                    }
+                    if ( streq( attacker->s.v.classname, "trap_shooter" )
+                            || streq( attacker->s.v.classname, "trap_spikeshooter" ) )
+                    {
+                        deathstring = "%s was spiked\n";
+                        break;
+                    }
+                    if ( streq( attacker->s.v.classname, "fireball" ) )
+                    {
+                        deathstring = "%s ate a lavaball\n";
+                        break;
+                    }
+                    if ( streq( attacker->s.v.classname, "trigger_changelevel" ) )
+                        deathstring = "%s tried to leave\n";
+                    else
+                        deathstring = "%s died\n";
+
+                    break;
+
+            }
+            G_bprint( 1, deathstring, targ->s.v.netname );
+        }
+    }
+}
+
+
 void SpyUpFrames()
 {
     int start, end;
@@ -178,6 +898,7 @@ void TeamFortress_SpyFeignDeath( int issilent )
         self->s.v.angles[2] = 0;
         TeamFortress_PlayerLostFlag();
         PlayerSetDieFrames(0);
+        SpyFeignDeathNotes(self, self->last_attacker);
     }
 }
 

@@ -1,5 +1,5 @@
 ./build_cmake.sh
 cd _cmake/qvm
-cp qwprogs.qvm ~/FTE/fortress/qwprogs.qvm
-cp qwprogs.map ~/FTE/fortress/qwprogs.map
+cp qwprogs.qvm /mnt/f/NQuake/fortress/qwprogs.qvm
+cp qwprogs.map /mnt/f/NQuake/fortress/qwprogs.map
 

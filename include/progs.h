@@ -278,6 +278,8 @@ typedef struct gedict_s {
 	int             undercover_team;
 	int             undercover_skin;
 	char           *undercover_name;
+	struct gedict_s *last_attacker;
+	int last_dmsg;
 
 
 
