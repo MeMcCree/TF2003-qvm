@@ -1141,7 +1141,7 @@ static gedict_t* spawnGrenade( gedict_t* user, int type, int isthrow )
             break;
     }
 	if( isthrow && printthrowmsg )
-	        G_sprint( user, 2, "%s thrown.\n", GrenadePrimeName[type] );
+	        G_sprint( user, 0, "%s thrown.\n", GrenadePrimeName[type] );
     return newmis;
 }
 
