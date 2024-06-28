@@ -2332,11 +2332,26 @@ void PreMatchImpulses() {
   case TF_DISPLAYLOCATION:
     display_location();
     break;
+  case TF_SCAN_10:
+      TeamFortress_Scan_Angel(10, false);
+      break;
+  case TF_SCAN_30:
+    TeamFortress_Scan_Angel(30, false);
+    break;
+  case TF_SCAN_100:
+    TeamFortress_Scan_Angel(100, false);
+    break;
+  case AUTOSCAN_IMPULSE:
+    if (self->playerclass == PC_SCOUT)
+      ScannerSwitch();
+    break;
   case 200:
   case 201:
     ChangeReadyState((int)self->s.v.impulse - 200);
     break;
   }
+  if (self->s.v.impulse == TF_SCAN)
+    self->last_impulse = self->s.v.impulse;
 }
 
 void DeadImpulses() {
@@ -2540,7 +2555,7 @@ void W_WeaponFrame() {
     DeadImpulses();
     if ((self->s.v.impulse == TF_GRENADE_T || self->s.v.impulse == TF_GRENADE_1 || self->s.v.impulse == TF_GRENADE_2) && self->current_weapon != WEAP_ASSAULT_CANNON && self->current_weapon != WEAP_NAILGUN && self->current_weapon != WEAP_SUPER_NAILGUN) {
       ImpulseCommands();
-    } else {
+    } else if (self->s.v.impulse) {
       Angel_SaveImpulse(self->s.v.impulse);
     }
     return;

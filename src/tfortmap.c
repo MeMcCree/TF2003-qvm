@@ -1646,6 +1646,10 @@ void item_tfgoal_touch(  )
 {
 	gedict_t *te;
 
+	if (streq(self->s.v.classname, "item_tfgoal") && streq(other->s.v.classname, "worldspawn")) {
+        setsize(self, PASSVEC3(self->goal_min), PASSVEC3(self->goal_max));
+    }
+
 	if( tfset_arena_mode )
 	        return;
 
@@ -2068,7 +2072,7 @@ void tfgoalitem_drop( gedict_t * Item, float PAlive, gedict_t * P )
 	} else
 	{
 		Item->s.v.touch = ( func_t ) item_tfgoal_touch;
-		Item->s.v.nextthink = g_globalvars.time + 5;
+		Item->s.v.nextthink = g_globalvars.time + 0.75;
 		Item->s.v.think = ( func_t ) tfgoalitem_dropthink;
 	}
 }

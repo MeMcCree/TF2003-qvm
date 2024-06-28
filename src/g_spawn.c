@@ -427,6 +427,10 @@ void            SP_func_train();
 void            SP_misc_teleporttrain();
 void            SP_func_button();
 
+void            SP_func_rotatable();
+void            SP_point_ambient_generic();
+void            SP_point_ambient();
+
 void            SP_trigger_multiple();
 void            SP_trigger_once();
 void            SP_trigger_relay();
@@ -614,6 +618,9 @@ Used as a positional target for spotlights, etc.
 	{"info_player_team2",         	SP_info_player_team2},
 	{"item_flag_team2",         	SP_item_flag_team2},
 	{"item_flag_team1",         	SP_item_flag_team1},
+        {"func_rotatable",              SP_func_rotatable},
+        {"point_ambient_generic",       SP_point_ambient_generic},
+        {"point_ambient_generic",       SP_point_ambient},
 	{0, 0}
 };
 
