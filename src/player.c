@@ -207,7 +207,7 @@ void player_run(  )
 }
 void player_shot_think()
 {
-	self->s.v.nextthink += 0.1;
+	self->s.v.nextthink = g_globalvars.time + 0.1;
     self->s.v.frame += 1;
     self->s.v.weaponframe += 1;
     if( self->s.v.frame >= self->frame_info.end ){
