@@ -310,6 +310,15 @@ void SP_worldspawn(  )
 	trap_precache_model( "progs/b_g_key.mdl" );
 
 	trap_precache_model( "progs/s_light.spr" );
+
+	trap_precache_sound("announcer/one.wav");
+	trap_precache_sound("announcer/two.wav");
+	trap_precache_sound("announcer/three.wav");
+	trap_precache_sound("announcer/1_minute.wav");
+	trap_precache_sound("announcer/5_minute.wav");
+	trap_precache_sound("announcer/fight.wav");
+	trap_precache_sound("announcer/roundend.wav");
+
 //
 // Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
 //

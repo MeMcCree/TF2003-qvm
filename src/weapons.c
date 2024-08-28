@@ -2170,7 +2170,11 @@ void ImpulseCommands() {
       break;
     case TF_GRENADE_1:
     case TF_GRENADE_2:
-      TeamFortress_PrimeGrenade();
+      TeamFortress_PrimeGrenade(self->useprimetothrow);
+      break;
+    case TF_GRENADE_1_PTH:
+    case TF_GRENADE_2_PTH:
+      TeamFortress_PrimeGrenade(1);
       break;
     case TF_SCAN_10:
       TeamFortress_Scan_Angel(10, false);

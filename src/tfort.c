@@ -921,14 +921,14 @@ static qboolean primeGrenade( int gtype )
     }
     return false;
 }
-void TeamFortress_PrimeGrenade(  )
+void TeamFortress_PrimeGrenade(int useprimetothrow)
 {
 	int     gtype = -1;
 
 	gedict_t *tGrenade;
 
 	if ( ( self->tfstate & TFSTATE_GRENPRIMED ) || ( self->tfstate & TFSTATE_GRENTHROWING ) ) {
-		if (self->useprimetothrow) {
+		if (useprimetothrow) {
 			TeamFortress_ThrowGrenade();
 		}
 		return;

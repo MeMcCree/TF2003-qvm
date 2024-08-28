@@ -55,7 +55,7 @@ void PreMatch_Think(  )
     }
     if ( time_left > 1 )
     {
-        UpdateCountdown(time_left);
+        UpdateCountdown((int)time_left);
         G_bprint( 2, "%d seconds.\n", time_left );
         self->s.v.nextthink = g_globalvars.time + 1.0;
         return;
@@ -63,7 +63,7 @@ void PreMatch_Think(  )
     //if ( time_left > 0 )
     if( tf_data.cb_prematch_time > g_globalvars.time )
     {
-        UpdateCountdown(time_left);
+        UpdateCountdown((int)time_left);
         G_bprint( 2, "1 second.\n" );
         self->s.v.nextthink = g_globalvars.time + 1.0;
         return;
@@ -73,6 +73,9 @@ void PreMatch_Think(  )
         self->s.v.nextthink = g_globalvars.time + 0.5;
         return;
     }*/
+    if (time_left == 0) {
+        UpdateCountdown((int)time_left);
+    }
     G_bprint( 2, "MATCH BEGINS NOW\n" );
     MatchTimer( true );
     if ( tfset(game_locked) )
@@ -364,11 +367,20 @@ void UpdateServerinfoScores()
 
 }
 
+const char* countdown_sound[] = {
+    "fight",
+    "one",
+    "two",
+    "three"
+};
+
 void UpdateCountdown(int time_left) {
     gedict_t* te;
     for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
         CenterPrint(te, "Match begins in %d %s\n", time_left, (time_left != 1 ? "seconds" : "second"));
-        stuffcmd(te, "play buttons/switch04.wav\n");
+        if (time_left <= 3 && time_left >= 0) {
+            stuffcmd(te, "play announcer/%s.wav\n", countdown_sound[time_left]);
+        }
     }
 }
 
@@ -456,7 +468,7 @@ void AttackDefendSecondRound() {
             G_sprint( self, 2, "Your Battle ID is %d\n", self->tf_id );
         }
 
-        stuffcmd(self, "play items/protect.wav\n");
+        stuffcmd(self, "play announcer/roundend.wav\n");
 
         TeamFortress_RemoveTimers(  );
         for (gren = world; (gren = trap_find( gren, FOFS( s.v.classname ), "grenade" ));) {
@@ -555,6 +567,13 @@ void RoundTimerThink() {
     seconds = (int)self->heat % 60;
     for (te = world; (te = trap_find(te, FOFS(s.v.classname), "player"));) {
         stuffcmd(te, "set roundtimer \"%d%d:%d%d\";\n", minutes / 10, minutes % 10, seconds / 10, seconds % 10);
+        if (seconds == 0) {
+            if (tfset_roundtime - minutes == 1) {
+                stuffcmd(te, "play announcer/1_minute.wav\n");
+            } else if (tfset_roundtime - minutes == 5) {
+                stuffcmd(te, "play announcer/5_minute.wav\n");
+            }
+        }
     }
 
     self->heat++;
