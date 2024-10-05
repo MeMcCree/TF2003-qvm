@@ -366,7 +366,7 @@ void TF_T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker,
 		targ->last_attacker = attacker;
 		targ->last_dmsg = tf_data.deathmsg;
 	}
-	
+
 	if ( T_AttackType & TF_TD_NOSOUND )
 	{
 	        if(streq(targ->s.v.classname,"player"))
@@ -507,7 +507,7 @@ void TF_T_Damage( gedict_t * targ, gedict_t * inflictor, gedict_t * attacker,
 #endif
 					
 					moment = damage / 3;
-					if ( damage <= 50 )
+					if ( damage <= 50 && (int)(targ->s.v.flags) & FL_ONGROUND )
 						moment = 0;
 #ifdef NEWHWGUY
 				} else

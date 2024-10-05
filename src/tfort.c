@@ -63,7 +63,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 1,			//bitmask
-	 75, 450, 450,		//maxhelth ,speeds
+	 75, 450, 450,		//maxhealth ,speeds
 	 WEAP_AXE | WEAP_SHOTGUN | WEAP_NAILGUN, WEAP_NAILGUN,	//weapon: carried, start
 	 25, 100, 0, 50, 0, 0,	// ammo
 	 50, 200, 25, 100, 0, 0,	//maxammo
@@ -80,7 +80,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 2,			//bitmask
-	 90, 300, 300,		//maxhelth ,speeds
+	 90, 300, 300,		//maxhealth ,speeds
 	 WEAP_SNIPER_RIFLE | WEAP_AUTO_RIFLE | WEAP_AXE | WEAP_NAILGUN,
 	 WEAP_SNIPER_RIFLE,	//weapon: carried, start
 	 60, 50, 0, 0, 0, 0,	// ammo
@@ -98,7 +98,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 4,			//bitmask
-	 100, 240, 240,		//maxhelth ,speeds
+	 100, 240, 240,		//maxhealth ,speeds
 	 WEAP_AXE | WEAP_SHOTGUN | WEAP_SUPER_SHOTGUN | WEAP_ROCKET_LAUNCHER,
 	 WEAP_ROCKET_LAUNCHER,	//weapon: carried, start
 	 50, 0, 10, 0, 0, 0,	// ammo
@@ -116,7 +116,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 8,			//bitmask
-	 90, 280, 280,		//maxhelth ,speeds
+	 90, 280, 280,		//maxhealth ,speeds
 	 WEAP_AXE | WEAP_SHOTGUN | WEAP_GRENADE_LAUNCHER | WEAP_DETPACK,
 	 WEAP_GRENADE_LAUNCHER,	//weapon: carried, start
 	 30, 0, 20, 0, 1, 0,	// ammo
@@ -134,7 +134,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 16,			//bitmask
-	 90, 320, 320,		//maxhelth ,speeds
+	 90, 320, 320,		//maxhealth ,speeds
 	 WEAP_MEDIKIT | WEAP_SHOTGUN | WEAP_SUPER_SHOTGUN | WEAP_SUPER_NAILGUN,
 	 WEAP_SUPER_NAILGUN,	//weapon: carried, start
 	 50, 50, 0, 0, 0, 50,	// ammo
@@ -152,7 +152,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 32,			//bitmask
-	 100, 230, 230,		//maxhelth ,speeds
+	 100, 230, 230,		//maxhealth ,speeds
 	 WEAP_ASSAULT_CANNON | WEAP_AXE | WEAP_SHOTGUN | WEAP_SUPER_SHOTGUN,
 	 WEAP_ASSAULT_CANNON,	//weapon: carried, start
 	 200, 0, 0, 24, 0, 0,	// ammo
@@ -170,12 +170,12 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 64,			//bitmask
-	 100, 300, 300,		//maxhelth ,speeds
+	 100, 300, 300,		//maxhealth ,speeds
 	 WEAP_INCENDIARY | WEAP_FLAMETHROWER | WEAP_AXE | WEAP_SHOTGUN,
 	 WEAP_INCENDIARY,	//weapon: carried, start
 	 20, 0, 15, 120, 0, 0,	// ammo
 	 40, 50, 60, 200, 0, 0,	//maxammo
-	 1, 4,			//num grens
+	 2, 4,			//num grens
 	 GR_TYPE_NORMAL, GR_TYPE_NAPALM,	//newgren types
 	 GR_TYPE_NORMAL, GR_TYPE_NAPALM,	//oldgren types
 	 0, 0,			//tf_items,tf_items_flags
@@ -188,7 +188,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 256,			//bitmask
-	 90, 300, 300,		//maxhelth ,speeds
+	 90, 300, 300,		//maxhealth ,speeds
 	 WEAP_AXE | WEAP_TRANQ | WEAP_SUPER_SHOTGUN | WEAP_NAILGUN,
 	 WEAP_TRANQ,		//weapon: carried, start
 	 40, 50, 0, 10, 0, 0,	// ammo
@@ -206,7 +206,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 512,			//bitmask
-	 80, 300, 300,		//maxhelth ,speeds
+	 80, 300, 300,		//maxhealth ,speeds
 	 WEAP_SPANNER | WEAP_LASER | WEAP_SUPER_SHOTGUN,
 	 WEAP_LASER,		//weapon: carried, start
 	 20, 25, 0, 100, 0, 0,	// ammo
@@ -224,7 +224,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 128,			//bitmask
-	 0, 0, 0,		//maxhelth ,speeds
+	 0, 0, 0,		//maxhealth ,speeds
 	 0,
 	 0,			//weapon: carried, start
 	 0, 0, 0, 0, 0, 0,	// ammo
@@ -242,7 +242,7 @@ static const class_settings_t class_set[] = {
 	 },
 	{
 	 0,			//bitmask
-	 50, 240, 240,		//maxhelth ,speeds
+	 50, 240, 240,		//maxhealth ,speeds
 	 WEAP_AXE,
 	 WEAP_AXE,		//weapon: carried, start
 	 0, 0, 0, 0, 0, 0,	// ammo

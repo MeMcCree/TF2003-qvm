@@ -94,9 +94,9 @@ int _checkVote()
         return 0;
 
 	if( needed_votes > 1)
-		G_bprint(3, "%d‘ more votes needed\n", needed_votes);
+		G_bprint(3, "Â%dâ€˜ more votes needed\n", needed_votes);
 	else
-		G_bprint(3, "%d‘ more vote needed\n", needed_votes);	
+		G_bprint(3, "Â%dâ€˜ more vote needed\n", needed_votes);	
     return needed_votes;
 }
 
@@ -280,10 +280,12 @@ void Vote_Cmd()
     int     argc,i;
     const vote_t*ucmd;
 
+    /*
+    Moze to ma tu byc, nie wiem. Hunter poprosil mnie zebym to usunal
     if ( tf_data.cb_prematch_time > g_globalvars.time )
     {
         return;
-    }
+    }*/
 
     argc = trap_CmdArgc();
 

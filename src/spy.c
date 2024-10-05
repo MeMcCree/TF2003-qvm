@@ -898,7 +898,7 @@ void TeamFortress_SpyFeignDeath( int issilent )
         self->s.v.angles[2] = 0;
         TeamFortress_PlayerLostFlag();
         PlayerSetDieFrames(0);
-        SpyFeignDeathNotes(self, self->last_attacker);
+        // SpyFeignDeathNotes(self, self->last_attacker);
     }
 }
 
@@ -1131,17 +1131,34 @@ void GasGrenadeTouch(  )
 // Gas grenade explosion. Throws up the particle cloud.
 void GasGrenadeExplode(  )
 {
-    gedict_t *te;
+    gedict_t *te, *oldest;
     float   pos;
+    float oldest_time = 2e9;
+    int grenade_amount = 0;
 
     // Check the pointcontents to prevent detpack outside the world
     pos = trap_pointcontents( PASSVEC3( self->s.v.origin ) );
     if ( pos == CONTENT_EMPTY )
-    {
+    {   
+        for (te = world; (te = trap_find(te, FOFS(s.v.classname), "gas"));)
+        {
+            if (te->s.v.owner == self->s.v.owner) {
+                if (te->respawn_time < oldest_time) {
+                    oldest = te;
+                    oldest_time = te->respawn_time;
+                }
+                grenade_amount++;
+            }
+        }
+        if (grenade_amount > 1) {
+            dremove(oldest);
+        }
         te = spawn(  );
+        te->s.v.classname = "gas";
         te->s.v.think = ( func_t ) GasGrenadeMakeGas;
         te->s.v.nextthink = g_globalvars.time + 0.1;
         te->heat = 0;
+        te->respawn_time = g_globalvars.time;
         VectorCopy( self->s.v.origin, te->s.v.origin );
         te->s.v.owner = self->s.v.owner;
         te->team_no = PROG_TO_EDICT( self->s.v.owner )->team_no;
